@@ -1,8 +1,11 @@
 package com.vhp.moviesstage1;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
+
+import com.vhp.moviesstage1.utils.Constants;
+import com.vhp.moviesstage1.utils.NetworkUtils;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -13,5 +16,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         mMoviesRecyclerView = (RecyclerView) findViewById(R.id.recyclerView_movies);
+
+        NetworkUtils.buildUrl(Constants.MOVIES_POPULAR);
+
     }
 }
