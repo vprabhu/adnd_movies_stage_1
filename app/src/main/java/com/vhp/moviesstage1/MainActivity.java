@@ -1,6 +1,7 @@
 package com.vhp.moviesstage1;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
         if(itemId == R.id.action_movies_sort){
-            // create=ing an alertBuilder to show the dialog and process the user selected item
+            // creating an alertBuilder to show the dialog and process the user selected item
             AlertDialog.Builder builder =
                     new AlertDialog.Builder(this);
             builder.setTitle(getResources().getString(R.string.title_sort_by));
@@ -85,7 +86,10 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
     @Override
     public void onClick(Movies moviesData) {
-        Log.d(TAG, "onClick: " + moviesData);
+        // pass the selected movie data in bundle and start the next activity
+        Intent detailsActivityIntent = new Intent(MainActivity.this , DetailsActivity.class);
+        detailsActivityIntent.putExtra("Movies" , moviesData);
+        startActivity(detailsActivityIntent);
     }
 
     /**
@@ -114,9 +118,9 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
                 for (int i = 0; i < mResultsJsonArray.length(); i++) {
                     JSONObject movieObject = mResultsJsonArray.getJSONObject(i);
                     String title = movieObject.getString("original_title");
-                    String poster =movieObject.getString("poster_path");
+                    String poster ="https://image.tmdb.org/t/p/w500"+movieObject.getString("poster_path");
                     String plot =movieObject.getString("overview");
-                    String rating =movieObject.getString("vote_count");
+                    String rating =movieObject.getString("vote_average");
                     String releaseDate =movieObject.getString("release_date");
 
                     Movies movies = new Movies(title , poster , plot , rating , releaseDate);

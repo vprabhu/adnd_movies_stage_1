@@ -10,4 +10,10 @@
     <!-- string to show mostPopular-->
     <string name="title_most_popular">Most Popular</string>
 
+    <!-- string to show user ratings-->
+    <string name="info_ratings">Ratings(/10) : </string>
+
+    <!-- string to show release date -->
+    <string name="info_release_date">Rel.Date :  </string>
+
 </resources>

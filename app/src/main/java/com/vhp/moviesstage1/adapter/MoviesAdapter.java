@@ -51,8 +51,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
         // loads the data into the UI Components
         void bind(int listIndex){
             mMoviesTitleTextView.setText(moviesList.get(listIndex).getMovieTitle());
-            Picasso.with(itemView.getContext()).load("https://image.tmdb.org/t/p/w500" +
-                    moviesList.get(listIndex).getMoviePoster()).into(mMoviesImageView);
+            Picasso.with(itemView.getContext()).load(moviesList.get(listIndex).getMoviePoster()).into(mMoviesImageView);
         }
 
         @Override
