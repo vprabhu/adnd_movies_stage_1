@@ -16,4 +16,7 @@
     <!-- string to show release date -->
     <string name="info_release_date">Rel.Date :  </string>
 
+    <!-- string for plot synopsis-->
+    <string name="info_plot_synopsis">Plot Synopsis :</string>
+
 </resources>

@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingTop="2dp"
+    android:paddingTop="@dimen/dimen_root_padding"
     android:gravity="center"
     android:orientation="vertical"
     tools:context="com.vhp.moviesstage1.MainActivity">
