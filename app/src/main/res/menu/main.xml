@@ -6,5 +6,5 @@
         android:title="@string/title_sort_by"
         app:showAsAction="always"
         android:id="@+id/action_movies_sort"
-        android:icon="@mipmap/ic_sort_black"/>
+        android:icon="@mipmap/ic_sort_white"/>
 </menu>

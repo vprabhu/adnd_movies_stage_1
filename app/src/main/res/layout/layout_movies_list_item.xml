@@ -18,6 +18,8 @@
         android:background="@android:color/black"
         android:alpha="0.5"
         tools:text="kills"
+        android:ellipsize="end"
+        android:maxLength="30"
         android:textStyle="bold"
         android:textColor="@android:color/white"
         android:layout_width="match_parent"

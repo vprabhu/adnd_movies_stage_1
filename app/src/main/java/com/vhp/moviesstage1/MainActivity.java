@@ -10,7 +10,9 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.ProgressBar;
 
 import com.vhp.moviesstage1.adapter.MoviesAdapter;
 import com.vhp.moviesstage1.model.Movies;
@@ -26,20 +28,24 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MoviesAdapter.MoviesAdapterOnClickHandler{
 
     private static final String TAG = "MainActivity";
 
     private RecyclerView mMoviesRecyclerView;
+    private ProgressBar mProgressBar;
     private List<Movies> moviesList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // UI Typecasting
         mMoviesRecyclerView = (RecyclerView) findViewById(R.id.recyclerView_movies);
+        mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
+        // api request to fetch the movies popular API as default
         makeApiRequest(Constants.MOVIES_POPULAR);
-
     }
 
     @Override
@@ -52,12 +58,13 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
         if(itemId == R.id.action_movies_sort){
+            // create=ing an alertBuilder to show the dialog and process the user selected item
             AlertDialog.Builder builder =
                     new AlertDialog.Builder(this);
             builder.setTitle(getResources().getString(R.string.title_sort_by));
             builder.setNegativeButton("Cancel", null);
 
-            final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
+            final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1);
             arrayAdapter.add(getResources().getString(R.string.title_most_popular));
             arrayAdapter.add(getResources().getString(R.string.info_top_rated));
 
@@ -69,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
                     }else if(i==1){
                         makeApiRequest(Constants.MOVIES_TOP_RATED);
                     }
-//                    Toast.makeText(MainActivity.this , selectedItem ,Toast.LENGTH_SHORT).show();
                 }
             });
             builder.show();
@@ -77,12 +83,30 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onClick(Movies moviesData) {
+        Log.d(TAG, "onClick: " + moviesData);
+    }
+
+    /**
+     * AsyncTask to load the RecyclerView with list of parsed movies Json data from the API
+     */
     private class MoviesListAsyncTask extends AsyncTask<URL , String  , String>{
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            // the visibility is triggered between the progressbar and recyclerview to show
+            // progressbar
+            mProgressBar.setVisibility(View.VISIBLE);
+            mMoviesRecyclerView.setVisibility(View.GONE);
+        }
 
         @Override
         protected String doInBackground(URL... params) {
             String moviesResult = null;
             moviesList = new ArrayList<>();
+            // the api response is json parsed and added the all the movies in the list
             try {
                 moviesResult = NetworkUtils.getResponseFromHttpUrl(params[0]);
                 JSONObject mMoviesJsonArray = new JSONObject(moviesResult);
@@ -110,13 +134,26 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             Log.d(TAG, "onPostExecute: " + moviesList.size());
-            MoviesAdapter moviesAdapter = new MoviesAdapter(MainActivity.this , moviesList);
+            // the visibility is triggered between the progressbar and recyclerview to show the
+            // updated recyclerview
+            mProgressBar.setVisibility(View.GONE);
+            mMoviesRecyclerView.setVisibility(View.VISIBLE);
+            // create an adapter which takes the moviesList and inflates the view with data
+            MoviesAdapter moviesAdapter = new MoviesAdapter(moviesList , MainActivity.this);
+            // create the grid layout with the columns of 2 to display GridView
             GridLayoutManager gridLayoutManager = new GridLayoutManager(MainActivity.this , 2);
+            // assign the gridLayoutManager to recyclerview
             mMoviesRecyclerView.setLayoutManager(gridLayoutManager);
+            // set the adapter to recyclerView
             mMoviesRecyclerView.setAdapter(moviesAdapter);
         }
     }
 
+    /**
+     * fetches the movies list according to the user's selection and displays the respective
+     * list of movies
+     * @param requestType type of movies the user need is known by this parameter
+     */
     private void makeApiRequest(String requestType){
         URL moviesUrl = NetworkUtils.buildUrl(requestType);
         new MoviesListAsyncTask().execute(moviesUrl);

@@ -21,15 +21,22 @@ import java.util.List;
 
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdapterViewHolder> {
 
-    private Context mContext;
     private List<Movies> moviesList = new ArrayList<>();
+    private final MoviesAdapterOnClickHandler mClickHandler;
 
-    public MoviesAdapter(Context ctxParam , List<Movies> moviesListParam) {
+    public MoviesAdapter(List<Movies> moviesListParam , MoviesAdapterOnClickHandler moviesAdapterOnClickHandler) {
         moviesList = moviesListParam;
-        mContext = ctxParam;
+        mClickHandler = moviesAdapterOnClickHandler;
     }
 
-    public class MoviesAdapterViewHolder extends RecyclerView.ViewHolder {
+    /**
+     * The interface that receives onClick messages.
+     */
+    public interface MoviesAdapterOnClickHandler {
+        void onClick(Movies moviesData);
+    }
+
+    public class MoviesAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
         public final TextView mMoviesTitleTextView;
         public final ImageView mMoviesImageView;
@@ -38,14 +45,21 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
             super(view);
             mMoviesTitleTextView  = (TextView) view.findViewById(R.id.textView_title);
             mMoviesImageView  = (ImageView) view.findViewById(R.id.imageView_movie_item);
+            view.setOnClickListener(this);
         }
 
+        // loads the data into the UI Components
         void bind(int listIndex){
             mMoviesTitleTextView.setText(moviesList.get(listIndex).getMovieTitle());
-//            mMoviesImageView.setText(String.valueOf(listIndex));
-            Picasso.with(mContext).load("https://image.tmdb.org/t/p/w500" +
+            Picasso.with(itemView.getContext()).load("https://image.tmdb.org/t/p/w500" +
                     moviesList.get(listIndex).getMoviePoster()).into(mMoviesImageView);
-//            https://image.tmdb.org/t/p/w500
+        }
+
+        @Override
+        public void onClick(View view) {
+            int adapterPosition = getAdapterPosition();
+            Movies movieData = moviesList.get(adapterPosition);
+            mClickHandler.onClick(movieData);
         }
     }
 
@@ -55,16 +69,16 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
         Context context = viewGroup.getContext();
         int layoutIdForListItem = R.layout.layout_movies_list_item;
         LayoutInflater inflater = LayoutInflater.from(context);
-        boolean shouldAttachToParentImmediately = false;
 
-        View view = inflater.inflate(layoutIdForListItem, viewGroup, shouldAttachToParentImmediately);
-        MoviesAdapterViewHolder moviesViewHolder = new MoviesAdapterViewHolder(view);
+        // inflates the desired layout
+        View view = inflater.inflate(layoutIdForListItem, viewGroup, false);
 
-        return moviesViewHolder;
+        return new MoviesAdapterViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(MoviesAdapterViewHolder holder, int position) {
+        // binds the data to UI
         holder.bind(position);
     }
 

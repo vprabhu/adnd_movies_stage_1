@@ -1,10 +1,13 @@
 package com.vhp.moviesstage1.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Created by root on 7/23/17.
  */
 
-public class Movies {
+public class Movies implements Parcelable{
 
     private String movieTitle;
     private String moviePoster;
@@ -20,6 +23,26 @@ public class Movies {
         this.movieUserRating = movieUserRating;
         this.movieReleaseDate = movieReleaseDate;
     }
+
+    protected Movies(Parcel in) {
+        movieTitle = in.readString();
+        moviePoster = in.readString();
+        moviePlot = in.readString();
+        movieUserRating = in.readString();
+        movieReleaseDate = in.readString();
+    }
+
+    public static final Creator<Movies> CREATOR = new Creator<Movies>() {
+        @Override
+        public Movies createFromParcel(Parcel in) {
+            return new Movies(in);
+        }
+
+        @Override
+        public Movies[] newArray(int size) {
+            return new Movies[size];
+        }
+    };
 
     public String getMovieTitle() {
         return movieTitle;
@@ -41,4 +64,17 @@ public class Movies {
         return movieReleaseDate;
     }
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(movieTitle);
+        parcel.writeString(moviePoster);
+        parcel.writeString(moviePlot);
+        parcel.writeString(movieUserRating);
+        parcel.writeString(movieReleaseDate);
+    }
 }
