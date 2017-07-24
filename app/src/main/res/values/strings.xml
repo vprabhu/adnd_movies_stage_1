@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">MoviesStage1</string>
+
+    <!-- string to show sortby header-->
+    <string name="title_sort_by">Sort By</string>
+
+    <!-- string to show TopRated-->
+    <string name="info_top_rated">Top Rated</string>
+
+    <!-- string to show mostPopular-->
+    <string name="title_most_popular">Most Popular</string>
+
 </resources>

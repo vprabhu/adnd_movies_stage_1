@@ -1,14 +1,16 @@
 package com.vhp.moviesstage1;
 
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
+import android.widget.ArrayAdapter;
 
 import com.vhp.moviesstage1.adapter.MoviesAdapter;
 import com.vhp.moviesstage1.model.Movies;
@@ -29,17 +31,14 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
     private RecyclerView mMoviesRecyclerView;
-    private List<Movies> moviesList = new ArrayList<>();
+    private List<Movies> moviesList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         mMoviesRecyclerView = (RecyclerView) findViewById(R.id.recyclerView_movies);
-
-        URL moviesUrl = NetworkUtils.buildUrl(Constants.MOVIES_POPULAR);
-
-        new MoviesListAsyncTask().execute(moviesUrl);
+        makeApiRequest(Constants.MOVIES_POPULAR);
 
     }
 
@@ -53,7 +52,27 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
         if(itemId == R.id.action_movies_sort){
-            Toast.makeText(MainActivity.this , "Sorting" ,Toast.LENGTH_SHORT).show();
+            AlertDialog.Builder builder =
+                    new AlertDialog.Builder(this);
+            builder.setTitle(getResources().getString(R.string.title_sort_by));
+            builder.setNegativeButton("Cancel", null);
+
+            final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.select_dialog_singlechoice);
+            arrayAdapter.add(getResources().getString(R.string.title_most_popular));
+            arrayAdapter.add(getResources().getString(R.string.info_top_rated));
+
+            builder.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    if(i==0){
+                        makeApiRequest(Constants.MOVIES_POPULAR);
+                    }else if(i==1){
+                        makeApiRequest(Constants.MOVIES_TOP_RATED);
+                    }
+//                    Toast.makeText(MainActivity.this , selectedItem ,Toast.LENGTH_SHORT).show();
+                }
+            });
+            builder.show();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -63,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(URL... params) {
             String moviesResult = null;
+            moviesList = new ArrayList<>();
             try {
                 moviesResult = NetworkUtils.getResponseFromHttpUrl(params[0]);
                 JSONObject mMoviesJsonArray = new JSONObject(moviesResult);
@@ -95,5 +115,10 @@ public class MainActivity extends AppCompatActivity {
             mMoviesRecyclerView.setLayoutManager(gridLayoutManager);
             mMoviesRecyclerView.setAdapter(moviesAdapter);
         }
+    }
+
+    private void makeApiRequest(String requestType){
+        URL moviesUrl = NetworkUtils.buildUrl(requestType);
+        new MoviesListAsyncTask().execute(moviesUrl);
     }
 }
