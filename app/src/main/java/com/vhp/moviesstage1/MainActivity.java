@@ -117,13 +117,14 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
                 JSONArray mResultsJsonArray = mMoviesJsonArray.getJSONArray("results");
                 for (int i = 0; i < mResultsJsonArray.length(); i++) {
                     JSONObject movieObject = mResultsJsonArray.getJSONObject(i);
+                    String id = movieObject.getString("id");
                     String title = movieObject.getString("original_title");
                     String poster ="https://image.tmdb.org/t/p/w500"+movieObject.getString("poster_path");
                     String plot =movieObject.getString("overview");
                     String rating =movieObject.getString("vote_average");
                     String releaseDate =movieObject.getString("release_date");
 
-                    Movies movies = new Movies(title , poster , plot , rating , releaseDate);
+                    Movies movies = new Movies(id ,title , poster , plot , rating , releaseDate);
                     moviesList.add(movies);
                 }
             } catch (IOException e) {
@@ -159,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
      * @param requestType type of movies the user need is known by this parameter
      */
     private void makeApiRequest(String requestType){
-        URL moviesUrl = NetworkUtils.buildUrl(requestType);
+        URL moviesUrl = NetworkUtils.buildmovieslisturl(requestType);
         new MoviesListAsyncTask().execute(moviesUrl);
     }
 }

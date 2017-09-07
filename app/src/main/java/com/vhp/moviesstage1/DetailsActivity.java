@@ -1,14 +1,35 @@
 package com.vhp.moviesstage1;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+import com.vhp.moviesstage1.adapter.MovieReviewsAdapter;
+import com.vhp.moviesstage1.model.MovieReviews;
 import com.vhp.moviesstage1.model.Movies;
+import com.vhp.moviesstage1.utils.NetworkUtils;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DetailsActivity extends AppCompatActivity {
+
+    private String movieId;
+    private List<MovieReviews> movieReviewsList;
+    private Movies movieBasicDetails;
+    private RecyclerView mReviewsRecyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,13 +38,95 @@ public class DetailsActivity extends AppCompatActivity {
 
         // getting the movie data from budle which is passed from MainActivity
         Bundle data = getIntent().getExtras();
-        Movies movies = data.getParcelable("Movies");
+        movieBasicDetails = data.getParcelable("Movies");
+        movieId = movieBasicDetails.getMovieId();
 
         // set activity title as selected movie name
-        getSupportActionBar().setTitle(movies.getMovieTitle());
+        getSupportActionBar().setTitle(movieBasicDetails.getMovieTitle());
         // set back button
         getSupportActionBar().setHomeButtonEnabled(true);
 
+        mReviewsRecyclerView = (RecyclerView) findViewById(R.id.recyclerView_movie_reviews);
+
+        makeMovieReviewsApiRequest(movieId);
+    }
+
+    /**
+     * fetches the movies list according to the user's selection and displays the respective
+     * list of movies
+     * @param movieId movieId on which the reviews must be fetched
+     */
+    private void makeMovieReviewsApiRequest(String movieId){
+        URL moviesUrl = NetworkUtils.buildMovieReviewsUrl(movieId);
+//        Log.d(DetailsActivity.class.getSimpleName(), "makeMovieReviewsApiRequest: " +moviesUrl);
+        new MoviesRelatedInfoAsyncTask().execute(moviesUrl);
+    }
+
+    /**
+     * AsyncTask to load the RecyclerView with list of parsed movies Json data from the API
+     */
+    private class MoviesRelatedInfoAsyncTask extends AsyncTask<URL , String  , String> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            // the visibility is triggered between the progressbar and recyclerview to show
+            // progressbar
+//            mProgressBar.setVisibility(View.VISIBLE);
+//            mMoviesRecyclerView.setVisibility(View.GONE);
+        }
+
+        @Override
+        protected String doInBackground(URL... params) {
+            String moviesResult = null;
+            movieReviewsList = new ArrayList<>();
+            // the api response is json parsed and added the all the movies in the list
+            try {
+                moviesResult = NetworkUtils.getResponseFromHttpUrl(params[0]);
+                JSONObject mMoviesJsonArray = new JSONObject(moviesResult);
+                JSONArray mResultsJsonArray = mMoviesJsonArray.getJSONArray("results");
+                for (int i = 0; i < mResultsJsonArray.length(); i++) {
+                    JSONObject movieObject = mResultsJsonArray.getJSONObject(i);
+                    String author = movieObject.getString("author");
+                    String content = movieObject.getString("content");
+
+                    MovieReviews movieReviews = new MovieReviews(author , content);
+                    movieReviewsList.add(movieReviews);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return moviesResult;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            Log.d(DetailsActivity.class.getSimpleName(), "onPostExecute: " + movieReviewsList.size());
+
+            // sets the movie basic details
+            bindDataToUI();
+            // the visibility is triggered between the progressbar and recyclerview to show the
+            // updated recyclerview
+//            mProgressBar.setVisibility(View.GONE);
+//            mMoviesRecyclerView.setVisibility(View.VISIBLE);
+            // create an adapter which takes the moviesList and inflates the view with data
+            MovieReviewsAdapter mMoviesReviews=
+                    new MovieReviewsAdapter(movieReviewsList);
+            // create the grid layout with the columns of 2 to display GridView
+            LinearLayoutManager gridLayoutManager = new LinearLayoutManager(
+                    DetailsActivity.this ,
+                    LinearLayoutManager.VERTICAL , false);
+            // assign the gridLayoutManager to recyclerview
+            mReviewsRecyclerView.setLayoutManager(gridLayoutManager);
+            // set the adapter to recyclerView
+            mReviewsRecyclerView.setAdapter(mMoviesReviews);
+        }
+    }
+
+    private void  bindDataToUI(){
         // UI Typecasting
         ImageView mMoviePosterImageView = (ImageView) findViewById(R.id.imageView_detail);
         TextView mTitleTextView = (TextView) findViewById(R.id.textView_movie_name);
@@ -32,12 +135,13 @@ public class DetailsActivity extends AppCompatActivity {
         TextView mPlotSynopsis = (TextView) findViewById(R.id.textView_movie_plot);
 
         // set the data to UI components
-        Picasso.with(DetailsActivity.this).load(movies.getMoviePoster()).into(mMoviePosterImageView);
-        mTitleTextView.setText(movies.getMovieTitle());
-        String userRatings = getResources().getString(R.string.info_ratings)+movies.getMovieUserRating();
+        Picasso.with(DetailsActivity.this).load(movieBasicDetails.getMoviePoster()).into(mMoviePosterImageView);
+        mTitleTextView.setText(movieBasicDetails.getMovieTitle());
+        String userRatings = getResources().getString(R.string.info_ratings)+movieBasicDetails.getMovieUserRating();
         mUserratingTextView.setText(userRatings);
-        String releaseDate = getResources().getString(R.string.info_release_date)+ movies.getMovieReleaseDate();
+        String releaseDate = getResources().getString(R.string.info_release_date)+ movieBasicDetails.getMovieReleaseDate();
         mReleaseDateTextView.setText(releaseDate);
-        mPlotSynopsis.setText(movies.getMoviePlot());
+        String moviePlot = getResources().getString(R.string.info_plot_synopsis)+ "\n"+ movieBasicDetails.getMoviePlot();
+        mPlotSynopsis.setText(moviePlot);
     }
 }

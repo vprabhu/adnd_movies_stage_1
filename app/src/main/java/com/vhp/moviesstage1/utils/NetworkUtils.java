@@ -33,9 +33,9 @@ public class NetworkUtils {
      * This method collects the query from the user selection(either /movie/popular or
      * movie/top_rated) and completes the URL formation which we require to get the movies list
      * @param query the movie selection either popular or toprated
-     * @return URL to fetch MOvies list from moviesDB.org
+     * @return URL to fetch Movies list from moviesDB.org
      */
-    public static URL buildUrl(String query){
+    public static URL buildmovieslisturl(String query){
         Uri UriBuilder = Uri.parse(BASE_URL).buildUpon()
                 .appendPath(query)
                 .appendQueryParameter(API_KEY , Constants.API_KEY).build();
@@ -50,7 +50,31 @@ public class NetworkUtils {
             e.printStackTrace();
         }
 
-        Log.d(TAG, "buildUrl: " + moviesUrl);
+        Log.d(TAG, "buildmovieslisturl: " + moviesUrl);
+        return moviesUrl;
+    }
+
+    /**
+     * This method helps to get the movies review based on the movie ID
+     * @param movieId the movie Id tom fetch the reviews for the respective movies
+     * @return URL to fetch Movie reviews from moviesDB.org
+     */
+    public static URL buildMovieReviewsUrl(String movieId){
+        Uri UriBuilder = Uri.parse(BASE_URL).buildUpon()
+                .appendPath("movie").appendPath(movieId).appendPath("reviews")
+                .appendQueryParameter(API_KEY , Constants.API_KEY).build();
+
+        URL moviesUrl = null;
+        try {
+            // URLDecoder is used to avoid the special characters in url
+            moviesUrl = new URL(URLDecoder.decode(UriBuilder.toString(), "UTF-8"));
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        Log.d(TAG, "buildmovieslisturl: " + moviesUrl);
         return moviesUrl;
     }
 
