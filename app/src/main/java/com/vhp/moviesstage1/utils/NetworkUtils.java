@@ -24,6 +24,7 @@ public class NetworkUtils {
      * Base url for whole app to fetch info about movies based on user selection
      */
     private static final String BASE_URL = "http://api.themoviedb.org/3/";
+    private static final String YOUTUBE_BASE_URL = "https://www.youtube.com/watch";
 
     /** query parameter used to build the URL */
     private final static String API_KEY = "api_key";
@@ -63,6 +64,29 @@ public class NetworkUtils {
         Uri UriBuilder = Uri.parse(BASE_URL).buildUpon()
                 .appendPath("movie").appendPath(movieId).appendPath(info)
                 .appendQueryParameter(API_KEY , Constants.API_KEY).build();
+
+        URL moviesUrl = null;
+        try {
+            // URLDecoder is used to avoid the special characters in url
+            moviesUrl = new URL(URLDecoder.decode(UriBuilder.toString(), "UTF-8"));
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        Log.d(TAG, "buildmovieslisturl: " + moviesUrl);
+        return moviesUrl;
+    }
+
+    /**
+     * This method helps to get the movie's trailer youtube url which helps to play trailers
+     * @param youtubeId the youtube video ID
+     * @return URL to fetch Movie Trailers to play in Youtube
+     */
+    public static URL buildMovieTrailerUrl(String youtubeId){
+        Uri UriBuilder = Uri.parse(YOUTUBE_BASE_URL).buildUpon()
+                .appendQueryParameter("v" , youtubeId).build();
 
         URL moviesUrl = null;
         try {

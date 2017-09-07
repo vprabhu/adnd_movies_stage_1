@@ -20,18 +20,28 @@ import java.util.List;
 public class MovieTrailersAdapter extends RecyclerView.Adapter<MovieTrailersAdapter.MoviesTrailersAdapterViewHolder> {
 
     private List<MovieTrailers> moviesList = new ArrayList<>();
+    private final MoviesTrailersAdapterOnClickHandler mClickHandler;
 
-    public MovieTrailersAdapter(List<MovieTrailers> moviesListParam ) {
+    public MovieTrailersAdapter(List<MovieTrailers> moviesListParam, MoviesTrailersAdapterOnClickHandler mClickHandler) {
         moviesList = moviesListParam;
+        this.mClickHandler = mClickHandler;
     }
 
-    public class MoviesTrailersAdapterViewHolder extends RecyclerView.ViewHolder{
+    /**
+     * The interface that receives onClick messages.
+     */
+    public interface MoviesTrailersAdapterOnClickHandler {
+        void onTrailerClick(String youtubeLink);
+    }
+
+    public class MoviesTrailersAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
         public final TextView mTrailerNameTextView;
 
         public MoviesTrailersAdapterViewHolder(View view) {
             super(view);
             mTrailerNameTextView = (TextView) view.findViewById(R.id.textView_trailer_name);
+            view.setOnClickListener(this);
         }
 
         // loads the data into the UI Components
@@ -39,6 +49,12 @@ public class MovieTrailersAdapter extends RecyclerView.Adapter<MovieTrailersAdap
             mTrailerNameTextView.setText(moviesList.get(listIndex).gettrailerName());
         }
 
+        @Override
+        public void onClick(View v) {
+            int adapterPosition = getAdapterPosition();
+            String youtubeId = moviesList.get(adapterPosition).getYoutubeId();
+            mClickHandler.onTrailerClick(youtubeId);
+        }
     }
 
 

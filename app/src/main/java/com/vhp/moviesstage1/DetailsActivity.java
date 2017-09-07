@@ -1,5 +1,7 @@
 package com.vhp.moviesstage1;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -27,7 +29,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DetailsActivity extends AppCompatActivity {
+public class DetailsActivity extends AppCompatActivity implements MovieTrailersAdapter.MoviesTrailersAdapterOnClickHandler {
 
     private String movieId;
     private List<MovieReviews> movieReviewsList;
@@ -70,14 +72,10 @@ public class DetailsActivity extends AppCompatActivity {
         new MoviesRelatedInfoAsyncTask().execute(movieReviewsUrl , moviesTrailersUrl);
     }
 
-    /**
-     * fetches the movie's latest trailer according to the user's selection
-     * @param movieId movieId on which the reviews must be fetched
-     */
-    private void makeMovieTrailerssApiRequest(String movieId){
-        URL moviesUrl = NetworkUtils.buildMovieRelatedInfoUrl(movieId , "videos");
-//        Log.d(DetailsActivity.class.getSimpleName(), "makeMovieReviewsApiRequest: " +moviesUrl);
-        new MoviesRelatedInfoAsyncTask().execute(moviesUrl);
+    @Override
+    public void onTrailerClick(String youtubeLink) {
+        Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + youtubeLink));
+        startActivity(appIntent);
     }
 
     /**
@@ -156,7 +154,7 @@ public class DetailsActivity extends AppCompatActivity {
             mReviewsRecyclerView.setAdapter(mMoviesReviews);
 
             MovieTrailersAdapter mMovieTrailersAdapter=
-                    new MovieTrailersAdapter(movieTrailersList);
+                    new MovieTrailersAdapter(movieTrailersList, DetailsActivity.this);
             // create the grid layout with the columns of 2 to display GridView
             LinearLayoutManager moviewTrailerLayoutManager = new LinearLayoutManager(
                     DetailsActivity.this ,
