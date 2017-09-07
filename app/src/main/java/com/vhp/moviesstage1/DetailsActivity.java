@@ -6,12 +6,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 import com.vhp.moviesstage1.adapter.MovieReviewsAdapter;
+import com.vhp.moviesstage1.adapter.MovieTrailersAdapter;
 import com.vhp.moviesstage1.model.MovieReviews;
+import com.vhp.moviesstage1.model.MovieTrailers;
 import com.vhp.moviesstage1.model.Movies;
 import com.vhp.moviesstage1.utils.NetworkUtils;
 
@@ -28,8 +31,10 @@ public class DetailsActivity extends AppCompatActivity {
 
     private String movieId;
     private List<MovieReviews> movieReviewsList;
+    private List<MovieTrailers> movieTrailersList;
     private Movies movieBasicDetails;
-    private RecyclerView mReviewsRecyclerView;
+    private RecyclerView mReviewsRecyclerView , mTrailersRecyclerView;
+    private View mRelatedInfoView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +52,8 @@ public class DetailsActivity extends AppCompatActivity {
         getSupportActionBar().setHomeButtonEnabled(true);
 
         mReviewsRecyclerView = (RecyclerView) findViewById(R.id.recyclerView_movie_reviews);
+        mTrailersRecyclerView = (RecyclerView) findViewById(R.id.recyclerView_movie_trailers);
+        mRelatedInfoView = (View) findViewById(R.id.view_related_info);
 
         makeMovieReviewsApiRequest(movieId);
     }
@@ -57,13 +64,24 @@ public class DetailsActivity extends AppCompatActivity {
      * @param movieId movieId on which the reviews must be fetched
      */
     private void makeMovieReviewsApiRequest(String movieId){
-        URL moviesUrl = NetworkUtils.buildMovieReviewsUrl(movieId);
+        URL movieReviewsUrl = NetworkUtils.buildMovieRelatedInfoUrl(movieId , "reviews");
+        URL moviesTrailersUrl = NetworkUtils.buildMovieRelatedInfoUrl(movieId , "videos");
+//        Log.d(DetailsActivity.class.getSimpleName(), "makeMovieReviewsApiRequest: " +moviesUrl);
+        new MoviesRelatedInfoAsyncTask().execute(movieReviewsUrl , moviesTrailersUrl);
+    }
+
+    /**
+     * fetches the movie's latest trailer according to the user's selection
+     * @param movieId movieId on which the reviews must be fetched
+     */
+    private void makeMovieTrailerssApiRequest(String movieId){
+        URL moviesUrl = NetworkUtils.buildMovieRelatedInfoUrl(movieId , "videos");
 //        Log.d(DetailsActivity.class.getSimpleName(), "makeMovieReviewsApiRequest: " +moviesUrl);
         new MoviesRelatedInfoAsyncTask().execute(moviesUrl);
     }
 
     /**
-     * AsyncTask to load the RecyclerView with list of parsed movies Json data from the API
+     * AsyncTask to load the movie reviews Json data from the API
      */
     private class MoviesRelatedInfoAsyncTask extends AsyncTask<URL , String  , String> {
 
@@ -80,6 +98,7 @@ public class DetailsActivity extends AppCompatActivity {
         protected String doInBackground(URL... params) {
             String moviesResult = null;
             movieReviewsList = new ArrayList<>();
+            movieTrailersList = new ArrayList<>();
             // the api response is json parsed and added the all the movies in the list
             try {
                 moviesResult = NetworkUtils.getResponseFromHttpUrl(params[0]);
@@ -93,6 +112,19 @@ public class DetailsActivity extends AppCompatActivity {
                     MovieReviews movieReviews = new MovieReviews(author , content);
                     movieReviewsList.add(movieReviews);
                 }
+
+                moviesResult = NetworkUtils.getResponseFromHttpUrl(params[1]);
+                JSONObject mMovieTrailersJsonArray = new JSONObject(moviesResult);
+                JSONArray mMoviesTrailersJsonArray= mMovieTrailersJsonArray.getJSONArray("results");
+                for (int i = 0; i < mResultsJsonArray.length(); i++) {
+                    JSONObject movieObject = mMoviesTrailersJsonArray.getJSONObject(i);
+                    String key = movieObject.getString("key");
+                    String name = movieObject.getString("name");
+
+                    MovieTrailers movieTrailers = new MovieTrailers(key , name);
+                    movieTrailersList.add(movieTrailers);
+                }
+
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (JSONException e) {
@@ -106,8 +138,7 @@ public class DetailsActivity extends AppCompatActivity {
             super.onPostExecute(s);
             Log.d(DetailsActivity.class.getSimpleName(), "onPostExecute: " + movieReviewsList.size());
 
-            // sets the movie basic details
-            bindDataToUI();
+
             // the visibility is triggered between the progressbar and recyclerview to show the
             // updated recyclerview
 //            mProgressBar.setVisibility(View.GONE);
@@ -123,8 +154,28 @@ public class DetailsActivity extends AppCompatActivity {
             mReviewsRecyclerView.setLayoutManager(gridLayoutManager);
             // set the adapter to recyclerView
             mReviewsRecyclerView.setAdapter(mMoviesReviews);
+
+            MovieTrailersAdapter mMovieTrailersAdapter=
+                    new MovieTrailersAdapter(movieTrailersList);
+            // create the grid layout with the columns of 2 to display GridView
+            LinearLayoutManager moviewTrailerLayoutManager = new LinearLayoutManager(
+                    DetailsActivity.this ,
+                    LinearLayoutManager.VERTICAL , false);
+            // assign the gridLayoutManager to recyclerview
+            mTrailersRecyclerView.setLayoutManager(moviewTrailerLayoutManager);
+            // set the adapter to recyclerView
+            mTrailersRecyclerView.setAdapter(mMovieTrailersAdapter);
+
+            if(movieReviewsList.size()==0 && movieTrailersList.size()==0){
+                mRelatedInfoView.setVisibility(View.GONE);
+            }
+
+            // sets the movie basic details
+            bindDataToUI();
         }
     }
+
+
 
     private void  bindDataToUI(){
         // UI Typecasting

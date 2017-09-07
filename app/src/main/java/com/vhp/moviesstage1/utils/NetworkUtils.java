@@ -59,9 +59,9 @@ public class NetworkUtils {
      * @param movieId the movie Id tom fetch the reviews for the respective movies
      * @return URL to fetch Movie reviews from moviesDB.org
      */
-    public static URL buildMovieReviewsUrl(String movieId){
+    public static URL buildMovieRelatedInfoUrl(String movieId , String info){
         Uri UriBuilder = Uri.parse(BASE_URL).buildUpon()
-                .appendPath("movie").appendPath(movieId).appendPath("reviews")
+                .appendPath("movie").appendPath(movieId).appendPath(info)
                 .appendQueryParameter(API_KEY , Constants.API_KEY).build();
 
         URL moviesUrl = null;

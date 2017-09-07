@@ -64,20 +64,25 @@
             tools:text="description about the movie to presented here"/>
 
         <View
+            android:id="@+id/view_related_info"
             android:layout_width="wrap_content"
             android:layout_height="1dp"
             android:background="@android:color/black"
             android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
             />
+
         <android.support.v7.widget.RecyclerView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/recyclerView_movie_reviews"/>
 
+        <android.support.v7.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/recyclerView_movie_trailers"/>
+
     </LinearLayout>
-
-
 
 </ScrollView>
 
