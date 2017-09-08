@@ -1,7 +1,9 @@
 package com.vhp.moviesstage1.adapter;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,7 +12,8 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 import com.vhp.moviesstage1.R;
-import com.vhp.moviesstage1.model.Movies;
+import com.vhp.moviesstage1.data.MoviesContract;
+import com.vhp.moviesstage1.model.MoviesInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,11 +24,10 @@ import java.util.List;
 
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdapterViewHolder> {
 
-    private List<Movies> moviesList = new ArrayList<>();
+    private Cursor mCursor;
     private final MoviesAdapterOnClickHandler mClickHandler;
 
-    public MoviesAdapter(List<Movies> moviesListParam , MoviesAdapterOnClickHandler moviesAdapterOnClickHandler) {
-        moviesList = moviesListParam;
+    public MoviesAdapter(MoviesAdapterOnClickHandler moviesAdapterOnClickHandler) {
         mClickHandler = moviesAdapterOnClickHandler;
     }
 
@@ -33,7 +35,7 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
      * The interface that receives onClick messages.
      */
     public interface MoviesAdapterOnClickHandler {
-        void onClick(Movies moviesData);
+        void onClick(MoviesInfo moviesInfoData);
     }
 
     public class MoviesAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
@@ -50,16 +52,66 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
 
         // loads the data into the UI Components
         void bind(int listIndex){
-            mMoviesTitleTextView.setText(moviesList.get(listIndex).getMovieTitle());
-            Picasso.with(itemView.getContext()).load(moviesList.get(listIndex).getMoviePoster()).into(mMoviesImageView);
+            mCursor.moveToPosition(listIndex);
+            int movieTitleIndex = mCursor.getColumnIndex(MoviesContract.MoviesEntry.COLUMN_TITLE);
+            int moviePosterIndex = mCursor.getColumnIndex(MoviesContract.MoviesEntry.COLUMN_POSTER);
+            String movieTitle = mCursor.getString(movieTitleIndex);
+            String moviePoster = mCursor.getString(moviePosterIndex);
+
+            mMoviesTitleTextView.setText(movieTitle);
+            Picasso.with(itemView.getContext()).load(moviePoster).into(mMoviesImageView);
         }
 
         @Override
         public void onClick(View view) {
-            int adapterPosition = getAdapterPosition();
-            Movies movieData = moviesList.get(adapterPosition);
-            mClickHandler.onClick(movieData);
+            int pos  = mCursor.getPosition();
+            Log.d("Adapter", "onClick: " + pos);
+            mCursor.moveToPosition(getAdapterPosition());
+            int movieIdIndex = mCursor.getColumnIndex(MoviesContract.MoviesEntry.COLUMN_MOVIES_ID);
+            int movieTitleIndex = mCursor.getColumnIndex(MoviesContract.MoviesEntry.COLUMN_TITLE);
+            int moviePlotIndex = mCursor.getColumnIndex(MoviesContract.MoviesEntry.COLUMN_PLOT);
+            int movieReleaseDateIndex = mCursor.getColumnIndex(MoviesContract.MoviesEntry.COLUMN_RELEASE_DATE);
+            int moviePosterIndex = mCursor.getColumnIndex(MoviesContract.MoviesEntry.COLUMN_POSTER);
+            int movieRatingsIndex = mCursor.getColumnIndex(MoviesContract.MoviesEntry.COLUMN_USER_RATING);
+
+            String movieId = mCursor.getString(movieIdIndex);
+            String moviePoster = mCursor.getString(moviePosterIndex);
+            String movieTitle = mCursor.getString(movieTitleIndex);
+            String moviePlot = mCursor.getString(moviePlotIndex);
+            String movieReleaseDate = mCursor.getString(movieReleaseDateIndex);
+            String movieRatings = mCursor.getString(movieRatingsIndex);
+
+            MoviesInfo moviesInfo = new MoviesInfo(
+                    movieId ,
+                    movieTitle ,
+                    moviePoster ,
+                    moviePlot ,
+                    movieRatings ,
+                    movieReleaseDate
+            );
+
+            mClickHandler.onClick(moviesInfo);
         }
+    }
+
+
+    /**
+     * When data changes and a re-query occurs, this function swaps the old Cursor
+     * with a newly updated Cursor (Cursor c) that is passed in.
+     */
+    public Cursor swapCursor(Cursor c) {
+        // check if this cursor is the same as the previous cursor (mCursor)
+        if (mCursor == c) {
+            return null; // bc nothing has changed
+        }
+        Cursor temp = mCursor;
+        this.mCursor = c; // new cursor value assigned
+
+        //check if this is a valid cursor, then update the cursor
+        if (c != null) {
+            this.notifyDataSetChanged();
+        }
+        return temp;
     }
 
 
@@ -82,7 +134,19 @@ public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdap
     }
 
     @Override
-    public int getItemCount() {
-        return moviesList.size();
+    public void setHasStableIds(boolean hasStableIds) {
+        super.setHasStableIds(true);
     }
+
+    /**
+     * Returns the number of items to display.
+     */
+    @Override
+    public int getItemCount() {
+        if (mCursor == null) {
+            return 0;
+        }
+        return mCursor.getCount();
+    }
+
 }

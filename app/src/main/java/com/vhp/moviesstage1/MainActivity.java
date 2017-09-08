@@ -1,9 +1,14 @@
 package com.vhp.moviesstage1;
 
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.os.AsyncTask;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -11,31 +16,35 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
 
 import com.vhp.moviesstage1.adapter.MoviesAdapter;
+import com.vhp.moviesstage1.data.MoviesContract;
 import com.vhp.moviesstage1.model.Movies;
+import com.vhp.moviesstage1.model.MoviesInfo;
+import com.vhp.moviesstage1.model.Result;
+import com.vhp.moviesstage1.retrofit.RetrofitAPICaller;
 import com.vhp.moviesstage1.utils.Constants;
 import com.vhp.moviesstage1.utils.NetworkUtils;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements MoviesAdapter.MoviesAdapterOnClickHandler{
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+public class MainActivity extends AppCompatActivity
+        implements MoviesAdapter.MoviesAdapterOnClickHandler ,
+        LoaderManager.LoaderCallbacks<Cursor>{
 
     private static final String TAG = "MainActivity";
+    private static final int TASK_LOADER_ID = 101;
 
     private RecyclerView mMoviesRecyclerView;
     private ProgressBar mProgressBar;
-    private List<Movies> moviesList;
+    private List<MoviesInfo> moviesInfoList;
+    private MoviesAdapter moviesAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +55,33 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
         mMoviesRecyclerView = (RecyclerView) findViewById(R.id.recyclerView_movies);
         mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
         // api request to fetch the movies popular API as default
-        makeApiRequest(Constants.MOVIES_POPULAR);
+        // makeApiRequest(Constants.MOVIES_POPULAR);
+
+        // Set the layout for the RecyclerView to be a linear layout, which measures and
+        // positions items within a RecyclerView into a linear list
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(MainActivity.this , 2);
+        mMoviesRecyclerView.setLayoutManager(gridLayoutManager);
+
+        // Initialize the adapter and attach it to the RecyclerView
+        moviesAdapter = new MoviesAdapter(this);
+        mMoviesRecyclerView.setAdapter(moviesAdapter);
+
+        boolean isConnected =  NetworkUtils.isNetworkConnected(MainActivity.this);
+        if(isConnected){
+            fetchMoviesList("");
+        }else {
+         /*
+         Ensure a loader is initialized and active. If the loader doesn't already exist, one is
+         created, otherwise the last created loader is re-used.
+         */
+            getSupportLoaderManager().initLoader(TASK_LOADER_ID, null, this);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+//        getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, this);
     }
 
     @Override
@@ -73,9 +108,9 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     if(i==0){
-                        makeApiRequest(Constants.MOVIES_POPULAR);
+//                        makeApiRequest(Constants.MOVIES_POPULAR);
                     }else if(i==1){
-                        makeApiRequest(Constants.MOVIES_TOP_RATED);
+//                        makeApiRequest(Constants.MOVIES_TOP_RATED);
                     }
                 }
             });
@@ -85,82 +120,123 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
     }
 
     @Override
-    public void onClick(Movies moviesData) {
+    public void onClick(MoviesInfo moviesInfoData) {
         // pass the selected movie data in bundle and start the next activity
         Intent detailsActivityIntent = new Intent(MainActivity.this , DetailsActivity.class);
-        detailsActivityIntent.putExtra("Movies" , moviesData);
+        detailsActivityIntent.putExtra("MoviesInfo" , moviesInfoData);
         startActivity(detailsActivityIntent);
     }
 
-    /**
-     * AsyncTask to load the RecyclerView with list of parsed movies Json data from the API
-     */
-    private class MoviesListAsyncTask extends AsyncTask<URL , String  , String>{
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new AsyncTaskLoader<Cursor>(this) {
 
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            // the visibility is triggered between the progressbar and recyclerview to show
-            // progressbar
-            mProgressBar.setVisibility(View.VISIBLE);
-            mMoviesRecyclerView.setVisibility(View.GONE);
-        }
+            Cursor mMoviesCursor = null;
 
-        @Override
-        protected String doInBackground(URL... params) {
-            String moviesResult = null;
-            moviesList = new ArrayList<>();
-            // the api response is json parsed and added the all the movies in the list
-            try {
-                moviesResult = NetworkUtils.getResponseFromHttpUrl(params[0]);
-                JSONObject mMoviesJsonArray = new JSONObject(moviesResult);
-                JSONArray mResultsJsonArray = mMoviesJsonArray.getJSONArray("results");
-                for (int i = 0; i < mResultsJsonArray.length(); i++) {
-                    JSONObject movieObject = mResultsJsonArray.getJSONObject(i);
-                    String id = movieObject.getString("id");
-                    String title = movieObject.getString("original_title");
-                    String poster ="https://image.tmdb.org/t/p/w500"+movieObject.getString("poster_path");
-                    String plot =movieObject.getString("overview");
-                    String rating =movieObject.getString("vote_average");
-                    String releaseDate =movieObject.getString("release_date");
-
-                    Movies movies = new Movies(id ,title , poster , plot , rating , releaseDate);
-                    moviesList.add(movies);
+            @Override
+            protected void onStartLoading() {
+                if (mMoviesCursor != null) {
+                    // Delivers any previously loaded data immediately
+                    deliverResult(mMoviesCursor);
+                } else {
+                    // Force a new load
+                    forceLoad();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
             }
-            return moviesResult;
-        }
+            @Override
+            public Cursor loadInBackground() {
+                // Will implement to load data
 
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            Log.d(TAG, "onPostExecute: " + moviesList.size());
-            // the visibility is triggered between the progressbar and recyclerview to show the
-            // updated recyclerview
-            mProgressBar.setVisibility(View.GONE);
-            mMoviesRecyclerView.setVisibility(View.VISIBLE);
-            // create an adapter which takes the moviesList and inflates the view with data
-            MoviesAdapter moviesAdapter = new MoviesAdapter(moviesList , MainActivity.this);
-            // create the grid layout with the columns of 2 to display GridView
-            GridLayoutManager gridLayoutManager = new GridLayoutManager(MainActivity.this , 2);
-            // assign the gridLayoutManager to recyclerview
-            mMoviesRecyclerView.setLayoutManager(gridLayoutManager);
-            // set the adapter to recyclerView
-            mMoviesRecyclerView.setAdapter(moviesAdapter);
-        }
+                // Query and load all task data in the background; sort by priority
+                // [Hint] use a try/catch block to catch any errors in loading data
+
+                try {
+                    return getContentResolver().query(MoviesContract.MoviesEntry.CONTENT_URI,
+                            null,
+                            null,
+                            null,
+                            null);
+
+                } catch (Exception e) {
+                    Log.e(TAG, "Failed to asynchronously load data.");
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+
+            // deliverResult sends the result of the load, a Cursor, to the registered listener
+            public void deliverResult(Cursor data) {
+                mMoviesCursor = data;
+                super.deliverResult(data);
+            }
+        };
     }
 
-    /**
-     * fetches the movies list according to the user's selection and displays the respective
-     * list of movies
-     * @param requestType type of movies the user need is known by this parameter
-     */
-    private void makeApiRequest(String requestType){
-        URL moviesUrl = NetworkUtils.buildmovieslisturl(requestType);
-        new MoviesListAsyncTask().execute(moviesUrl);
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        // Update the data that the adapter uses to create ViewHolders
+        moviesAdapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        moviesAdapter.swapCursor(null);
+    }
+
+
+    private void fetchMoviesList(String movieType){
+        Call<Movies> moviesCall = RetrofitAPICaller.getInstance(MainActivity.this)
+                .getMoviesAPIs().getMoviesListAPI(Constants.API_KEY);
+        moviesCall.enqueue(new Callback<Movies>() {
+            @Override
+            public void onResponse(Call<Movies> call, Response<Movies> response) {
+                Log.d(TAG, "onResponse: " + response);
+                insertMoviesResponseIntoDB(response);
+            }
+
+            @Override
+            public void onFailure(Call<Movies> call, Throwable t) {
+                Log.d(TAG, "onFailure: "+ t);
+
+            }
+        });
+    }
+
+    private void insertMoviesResponseIntoDB(Response<Movies> response) {
+        int responseSize = response.body().getResults().size();
+        List<Result> mMoviesResultList = response.body().getResults();
+        // check if the response size is greater than zero and delete the current DB data
+        if(mMoviesResultList.size()>0){
+            getContentResolver().delete(MoviesContract.MoviesEntry.CONTENT_URI , null , null);
+        }
+        for (int i = 0; i < responseSize; i++) {
+            ContentValues mContentValues = new ContentValues();
+            mContentValues.put(MoviesContract.MoviesEntry.COLUMN_MOVIES_ID ,
+                    mMoviesResultList.get(i).getId().toString());
+            mContentValues.put(
+                    MoviesContract.MoviesEntry.COLUMN_TITLE ,
+                    mMoviesResultList.get(i).getOriginalTitle());
+            mContentValues.put(
+                    MoviesContract.MoviesEntry.COLUMN_PLOT ,
+                    mMoviesResultList.get(i).getOverview());
+            mContentValues.put(
+                    MoviesContract.MoviesEntry.COLUMN_RELEASE_DATE ,
+                    mMoviesResultList.get(i).getReleaseDate());
+            mContentValues.put(
+                    MoviesContract.MoviesEntry.COLUMN_POSTER ,
+                    "https://image.tmdb.org/t/p/w500"+mMoviesResultList.get(i).getPosterPath());
+            mContentValues.put(
+                    MoviesContract.MoviesEntry.COLUMN_USER_RATING ,
+                    mMoviesResultList.get(i).getVoteAverage());
+            // insert movies data into DB via Content provider
+            Uri mUri = getContentResolver().insert(MoviesContract.MoviesEntry.CONTENT_URI , mContentValues);
+            Log.d(TAG, "insertMoviesResponseIntoDB: " + mUri);
+        }
+        /*
+         Ensure a loader is initialized and active. If the loader doesn't already exist, one is
+         created, otherwise the last created loader is re-used.
+         */
+        getSupportLoaderManager().initLoader(TASK_LOADER_ID, null, this);
     }
 }

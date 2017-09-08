@@ -11,6 +11,8 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.vhp.moviesstage1.model.Movies;
+
 import static com.vhp.moviesstage1.data.MoviesContract.MoviesEntry.TABLE_NAME;
 
 /**
@@ -141,7 +143,29 @@ public class MoviesProvider extends ContentProvider {
 
     @Override
     public int delete(@NonNull Uri uri, @Nullable String s, @Nullable String[] strings) {
-        return 0;
+        int rowsDeleted;
+        // Get access to the task database (to write new data to)
+        final SQLiteDatabase db = moviesDBHelper.getWritableDatabase();
+
+        // Write URI matching code to identify the match for the tasks directory
+        int match = sUriMatcher.match(uri);
+
+        switch (match) {
+            case MOVIES:
+                // Insert new values into the database
+                // Inserting values into movies table
+                rowsDeleted = db.delete(TABLE_NAME, null, null);
+                break;
+            // Set the value for the returnedUri and write the default case for unknown URI's
+            // Default case throws an UnsupportedOperationException
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+
+        // Notify the resolver if the uri has been changed, and return the newly inserted URI
+        getContext().getContentResolver().notifyChange(uri, null);
+
+        return rowsDeleted;
     }
 
     @Override

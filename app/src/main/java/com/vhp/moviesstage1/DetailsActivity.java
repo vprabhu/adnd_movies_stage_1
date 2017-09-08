@@ -17,7 +17,7 @@ import com.vhp.moviesstage1.adapter.MovieReviewsAdapter;
 import com.vhp.moviesstage1.adapter.MovieTrailersAdapter;
 import com.vhp.moviesstage1.model.MovieReviews;
 import com.vhp.moviesstage1.model.MovieTrailers;
-import com.vhp.moviesstage1.model.Movies;
+import com.vhp.moviesstage1.model.MoviesInfo;
 import com.vhp.moviesstage1.utils.NetworkUtils;
 
 import org.json.JSONArray;
@@ -34,7 +34,7 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
     private String movieId;
     private List<MovieReviews> movieReviewsList;
     private List<MovieTrailers> movieTrailersList;
-    private Movies movieBasicDetails;
+    private MoviesInfo movieBasicDetails;
     private RecyclerView mReviewsRecyclerView , mTrailersRecyclerView;
     private View mRelatedInfoView;
 
@@ -45,7 +45,7 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
 
         // getting the movie data from budle which is passed from MainActivity
         Bundle data = getIntent().getExtras();
-        movieBasicDetails = data.getParcelable("Movies");
+        movieBasicDetails = data.getParcelable("MoviesInfo");
         movieId = movieBasicDetails.getMovieId();
 
         // set activity title as selected movie name

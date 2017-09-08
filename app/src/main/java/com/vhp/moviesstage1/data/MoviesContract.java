@@ -28,6 +28,7 @@ public class MoviesContract {
         // Task table and column names
         public static final String TABLE_NAME = "movies";
 
+        public static final String COLUMN_MOVIES_ID = "movies_id";
         public static final String COLUMN_TITLE = "title";
         public static final String COLUMN_PLOT = "plot";
         public static final String COLUMN_RELEASE_DATE = "release_date";

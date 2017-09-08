@@ -1,89 +1,55 @@
+
 package com.vhp.moviesstage1.model;
 
-import android.os.Parcel;
-import android.os.Parcelable;
+import java.util.List;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
-/**
- * Created by root on 7/23/17.
- */
+public class Movies {
 
-public class Movies implements Parcelable{
+    @SerializedName("page")
+    @Expose
+    private Integer page;
+    @SerializedName("total_results")
+    @Expose
+    private Integer totalResults;
+    @SerializedName("total_pages")
+    @Expose
+    private Integer totalPages;
+    @SerializedName("results")
+    @Expose
+    private List<Result> results = null;
 
-
-    public String getMovieId() {
-        return movieId;
+    public Integer getPage() {
+        return page;
     }
 
-    private String movieId;
-    private String movieTitle;
-    private String moviePoster;
-    private String moviePlot;
-    private String movieUserRating;
-    private String movieReleaseDate;
-
-
-    public Movies(String movieId,String movieTitle, String moviePoster, String moviePlot, String movieUserRating, String movieReleaseDate) {
-        this.movieId = movieId;
-        this.movieTitle = movieTitle;
-        this.moviePoster = moviePoster;
-        this.moviePlot = moviePlot;
-        this.movieUserRating = movieUserRating;
-        this.movieReleaseDate = movieReleaseDate;
+    public void setPage(Integer page) {
+        this.page = page;
     }
 
-    protected Movies(Parcel in) {
-        movieId = in.readString();
-        movieTitle = in.readString();
-        moviePoster = in.readString();
-        moviePlot = in.readString();
-        movieUserRating = in.readString();
-        movieReleaseDate = in.readString();
+    public Integer getTotalResults() {
+        return totalResults;
     }
 
-    public static final Creator<Movies> CREATOR = new Creator<Movies>() {
-        @Override
-        public Movies createFromParcel(Parcel in) {
-            return new Movies(in);
-        }
-
-        @Override
-        public Movies[] newArray(int size) {
-            return new Movies[size];
-        }
-    };
-
-    public String getMovieTitle() {
-        return movieTitle;
+    public void setTotalResults(Integer totalResults) {
+        this.totalResults = totalResults;
     }
 
-    public String getMoviePoster() {
-        return moviePoster;
+    public Integer getTotalPages() {
+        return totalPages;
     }
 
-    public String getMoviePlot() {
-        return moviePlot;
+    public void setTotalPages(Integer totalPages) {
+        this.totalPages = totalPages;
     }
 
-    public String getMovieUserRating() {
-        return movieUserRating;
+    public List<Result> getResults() {
+        return results;
     }
 
-    public String getMovieReleaseDate() {
-        return movieReleaseDate;
+    public void setResults(List<Result> results) {
+        this.results = results;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(movieId);
-        parcel.writeString(movieTitle);
-        parcel.writeString(moviePoster);
-        parcel.writeString(moviePlot);
-        parcel.writeString(movieUserRating);
-        parcel.writeString(movieReleaseDate);
-    }
 }

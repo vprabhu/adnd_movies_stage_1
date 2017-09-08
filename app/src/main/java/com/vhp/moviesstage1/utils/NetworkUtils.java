@@ -1,5 +1,8 @@
 package com.vhp.moviesstage1.utils;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.util.Log;
 
@@ -20,26 +23,23 @@ public class NetworkUtils {
 
     private static final String TAG = NetworkUtils.class.getSimpleName();
 
-    /**
-     * Base url for whole app to fetch info about movies based on user selection
-     */
-    private static final String BASE_URL = "http://api.themoviedb.org/3/";
+
+
     private static final String YOUTUBE_BASE_URL = "https://www.youtube.com/watch";
 
-    /** query parameter used to build the URL */
-    private final static String API_KEY = "api_key";
+
 
 
     /**
      * This method collects the query from the user selection(either /movie/popular or
      * movie/top_rated) and completes the URL formation which we require to get the movies list
      * @param query the movie selection either popular or toprated
-     * @return URL to fetch Movies list from moviesDB.org
+     * @return URL to fetch MoviesInfo list from moviesDB.org
      */
     public static URL buildmovieslisturl(String query){
-        Uri UriBuilder = Uri.parse(BASE_URL).buildUpon()
+        Uri UriBuilder = Uri.parse(Constants.BASE_URL).buildUpon()
                 .appendPath(query)
-                .appendQueryParameter(API_KEY , Constants.API_KEY).build();
+                .appendQueryParameter(Constants.API_KEY_LABEL , Constants.API_KEY).build();
 
         URL moviesUrl = null;
         try {
@@ -61,9 +61,9 @@ public class NetworkUtils {
      * @return URL to fetch Movie reviews from moviesDB.org
      */
     public static URL buildMovieRelatedInfoUrl(String movieId , String info){
-        Uri UriBuilder = Uri.parse(BASE_URL).buildUpon()
+        Uri UriBuilder = Uri.parse(Constants.BASE_URL).buildUpon()
                 .appendPath("movie").appendPath(movieId).appendPath(info)
-                .appendQueryParameter(API_KEY , Constants.API_KEY).build();
+                .appendQueryParameter(Constants.API_KEY_LABEL , Constants.API_KEY).build();
 
         URL moviesUrl = null;
         try {
@@ -126,6 +126,19 @@ public class NetworkUtils {
         } finally {
             urlConnection.disconnect();
         }
+    }
+
+    /**
+     * Checks weather the internet connection is available
+     * */
+    public static boolean isNetworkConnected(Context context) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        if (netInfo != null && netInfo.isConnectedOrConnecting()) {
+            return true;
+        }
+        return false;
     }
 
 }
