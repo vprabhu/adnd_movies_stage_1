@@ -156,6 +156,7 @@ public class MainActivity extends AppCompatActivity
 
             // deliverResult sends the result of the load, a Cursor, to the registered listener
             public void deliverResult(Cursor data) {
+                super.deliverResult(data);
                 if(data.getCount()==0){
                     Toast.makeText(
                             MainActivity.this ,
@@ -164,7 +165,6 @@ public class MainActivity extends AppCompatActivity
                 }else {
                     mMoviesCursor = data;
                 }
-                super.deliverResult(data);
             }
         };
     }
@@ -172,9 +172,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         // Update the data that the adapter uses to create ViewHolders
-        if(data.getCount()!=0){
+//        if(data.getCount()!=0){
             moviesAdapter.swapCursor(data);
-        }
+//        }
     }
 
     @Override
@@ -210,7 +210,6 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
-
     }
 
     /**
@@ -268,7 +267,7 @@ public class MainActivity extends AppCompatActivity
     private void triggerLoader(String movieType){
         Bundle mBundle = new Bundle();
         mBundle.putString("MovieCategory" , movieType);
-        getSupportLoaderManager().initLoader(TASK_LOADER_ID, mBundle, MainActivity.this);
+        getSupportLoaderManager().restartLoader(TASK_LOADER_ID, mBundle, MainActivity.this);
     }
 
     /**

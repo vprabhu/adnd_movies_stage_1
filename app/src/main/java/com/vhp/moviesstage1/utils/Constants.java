@@ -19,4 +19,10 @@ public class Constants {
     public static final String BASE_URL = "http://api.themoviedb.org/3/";
     /** query parameter used to build the URL */
     public final static String API_KEY_LABEL = "api_key";
+
+    /** constant to fetch the movie reviews data */
+    public final static String MOVIES_REVIEWS = "movie/{moviesId}/reviews";
+
+    /** constant to fetch the movie reviews data */
+    public final static String MOVIES_TRAILERS = "movie/{moviesId}/videos";
 }

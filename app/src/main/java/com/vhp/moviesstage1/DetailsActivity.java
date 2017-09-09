@@ -2,7 +2,6 @@ package com.vhp.moviesstage1;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -18,25 +17,25 @@ import com.vhp.moviesstage1.adapter.MovieTrailersAdapter;
 import com.vhp.moviesstage1.model.MovieReviews;
 import com.vhp.moviesstage1.model.MovieTrailers;
 import com.vhp.moviesstage1.model.MoviesInfo;
-import com.vhp.moviesstage1.utils.NetworkUtils;
+import com.vhp.moviesstage1.model.ReviewApiModel;
+import com.vhp.moviesstage1.model.TrailersApiModel;
+import com.vhp.moviesstage1.retrofit.RetrofitAPICaller;
+import com.vhp.moviesstage1.utils.Constants;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class DetailsActivity extends AppCompatActivity implements MovieTrailersAdapter.MoviesTrailersAdapterOnClickHandler {
 
-    private String movieId;
-    private List<MovieReviews> movieReviewsList;
-    private List<MovieTrailers> movieTrailersList;
+    private static final String TAG = DetailsActivity.class.getSimpleName();
+    private List<MovieReviews> movieReviewsList = new ArrayList<>();
+    private List<MovieTrailers> movieTrailersList = new ArrayList<>();
     private MoviesInfo movieBasicDetails;
     private RecyclerView mReviewsRecyclerView , mTrailersRecyclerView;
-    private View mRelatedInfoView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +45,7 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
         // getting the movie data from budle which is passed from MainActivity
         Bundle data = getIntent().getExtras();
         movieBasicDetails = data.getParcelable("MoviesInfo");
-        movieId = movieBasicDetails.getMovieId();
+        String movieId = movieBasicDetails.getMovieId();
 
         // set activity title as selected movie name
         getSupportActionBar().setTitle(movieBasicDetails.getMovieTitle());
@@ -55,21 +54,16 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
 
         mReviewsRecyclerView = (RecyclerView) findViewById(R.id.recyclerView_movie_reviews);
         mTrailersRecyclerView = (RecyclerView) findViewById(R.id.recyclerView_movie_trailers);
-        mRelatedInfoView = (View) findViewById(R.id.view_related_info);
+        View mRelatedInfoView = (View) findViewById(R.id.view_related_info);
 
-        makeMovieReviewsApiRequest(movieId);
-    }
+//        makeMovieReviewsApiRequest(movieId);
 
-    /**
-     * fetches the movies list according to the user's selection and displays the respective
-     * list of movies
-     * @param movieId movieId on which the reviews must be fetched
-     */
-    private void makeMovieReviewsApiRequest(String movieId){
-        URL movieReviewsUrl = NetworkUtils.buildMovieRelatedInfoUrl(movieId , "reviews");
-        URL moviesTrailersUrl = NetworkUtils.buildMovieRelatedInfoUrl(movieId , "videos");
-//        Log.d(DetailsActivity.class.getSimpleName(), "makeMovieReviewsApiRequest: " +moviesUrl);
-        new MoviesRelatedInfoAsyncTask().execute(movieReviewsUrl , moviesTrailersUrl);
+        // sets the movie basic details
+        bindDataToUI();
+
+        // fetches the movie reviews and trailers
+        fetchMovieReviews(movieId);
+        fetchMovieTrailers(movieId);
     }
 
     @Override
@@ -79,102 +73,8 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
     }
 
     /**
-     * AsyncTask to load the movie reviews Json data from the API
+     * This method binds the data to the UI
      */
-    private class MoviesRelatedInfoAsyncTask extends AsyncTask<URL , String  , String> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            // the visibility is triggered between the progressbar and recyclerview to show
-            // progressbar
-//            mProgressBar.setVisibility(View.VISIBLE);
-//            mMoviesRecyclerView.setVisibility(View.GONE);
-        }
-
-        @Override
-        protected String doInBackground(URL... params) {
-            String moviesResult = null;
-            movieReviewsList = new ArrayList<>();
-            movieTrailersList = new ArrayList<>();
-            // the api response is json parsed and added the all the movies in the list
-            try {
-                moviesResult = NetworkUtils.getResponseFromHttpUrl(params[0]);
-                JSONObject mMoviesJsonArray = new JSONObject(moviesResult);
-                JSONArray mResultsJsonArray = mMoviesJsonArray.getJSONArray("results");
-                for (int i = 0; i < mResultsJsonArray.length(); i++) {
-                    JSONObject movieObject = mResultsJsonArray.getJSONObject(i);
-                    String author = movieObject.getString("author");
-                    String content = movieObject.getString("content");
-
-                    MovieReviews movieReviews = new MovieReviews(author , content);
-                    movieReviewsList.add(movieReviews);
-                }
-
-                moviesResult = NetworkUtils.getResponseFromHttpUrl(params[1]);
-                JSONObject mMovieTrailersJsonArray = new JSONObject(moviesResult);
-                JSONArray mMoviesTrailersJsonArray= mMovieTrailersJsonArray.getJSONArray("results");
-                for (int i = 0; i < mResultsJsonArray.length(); i++) {
-                    JSONObject movieObject = mMoviesTrailersJsonArray.getJSONObject(i);
-                    String key = movieObject.getString("key");
-                    String name = movieObject.getString("name");
-
-                    MovieTrailers movieTrailers = new MovieTrailers(key , name);
-                    movieTrailersList.add(movieTrailers);
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            return moviesResult;
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-            Log.d(DetailsActivity.class.getSimpleName(), "onPostExecute: " + movieReviewsList.size());
-
-
-            // the visibility is triggered between the progressbar and recyclerview to show the
-            // updated recyclerview
-//            mProgressBar.setVisibility(View.GONE);
-//            mMoviesRecyclerView.setVisibility(View.VISIBLE);
-            // create an adapter which takes the moviesList and inflates the view with data
-            MovieReviewsAdapter mMoviesReviews=
-                    new MovieReviewsAdapter(movieReviewsList);
-            // create the grid layout with the columns of 2 to display GridView
-            LinearLayoutManager gridLayoutManager = new LinearLayoutManager(
-                    DetailsActivity.this ,
-                    LinearLayoutManager.VERTICAL , false);
-            // assign the gridLayoutManager to recyclerview
-            mReviewsRecyclerView.setLayoutManager(gridLayoutManager);
-            // set the adapter to recyclerView
-            mReviewsRecyclerView.setAdapter(mMoviesReviews);
-
-            MovieTrailersAdapter mMovieTrailersAdapter=
-                    new MovieTrailersAdapter(movieTrailersList, DetailsActivity.this);
-            // create the grid layout with the columns of 2 to display GridView
-            LinearLayoutManager moviewTrailerLayoutManager = new LinearLayoutManager(
-                    DetailsActivity.this ,
-                    LinearLayoutManager.VERTICAL , false);
-            // assign the gridLayoutManager to recyclerview
-            mTrailersRecyclerView.setLayoutManager(moviewTrailerLayoutManager);
-            // set the adapter to recyclerView
-            mTrailersRecyclerView.setAdapter(mMovieTrailersAdapter);
-
-            if(movieReviewsList.size()==0 && movieTrailersList.size()==0){
-                mRelatedInfoView.setVisibility(View.GONE);
-            }
-
-            // sets the movie basic details
-            bindDataToUI();
-        }
-    }
-
-
-
     private void  bindDataToUI(){
         // UI Typecasting
         ImageView mMoviePosterImageView = (ImageView) findViewById(R.id.imageView_detail);
@@ -192,5 +92,86 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
         mReleaseDateTextView.setText(releaseDate);
         String moviePlot = getResources().getString(R.string.info_plot_synopsis)+ "\n"+ movieBasicDetails.getMoviePlot();
         mPlotSynopsis.setText(moviePlot);
+    }
+
+    /**
+     * Fetches the movie reviews according to movieId and fills the recyclerView
+     * @param movieId movies ID to fetch the movie reviews
+     */
+    private void fetchMovieReviews(final String movieId){
+        Call<ReviewApiModel> moviesCall =  RetrofitAPICaller.getInstance(DetailsActivity.this)
+                .getMoviesAPIs().getMovieReviewsListAPI(movieId , Constants.API_KEY);
+        moviesCall.enqueue(new Callback<ReviewApiModel>() {
+            @Override
+            public void onResponse(Call<ReviewApiModel> call, Response<ReviewApiModel> response) {
+                Log.d(TAG, "onResponse: " + response);
+                int responseSize = response.body().getResults().size();
+                for (int i = 0; i < responseSize; i++) {
+                    String author = response.body().getResults().get(i).getAuthor();
+                    String content = response.body().getResults().get(i).getContent();
+
+                    MovieReviews movieReviews = new MovieReviews(author , content);
+                    movieReviewsList.add(movieReviews);
+                }
+
+                // create an adapter which takes the moviesList and inflates the view with data
+                MovieReviewsAdapter mMoviesReviews=
+                        new MovieReviewsAdapter(movieReviewsList);
+                // create the grid layout with the columns of 2 to display GridView
+                LinearLayoutManager gridLayoutManager = new LinearLayoutManager(
+                        DetailsActivity.this ,
+                        LinearLayoutManager.VERTICAL , false);
+                // assign the gridLayoutManager to recyclerview
+                mReviewsRecyclerView.setLayoutManager(gridLayoutManager);
+                // set the adapter to recyclerView
+                mReviewsRecyclerView.setAdapter(mMoviesReviews);
+            }
+
+            @Override
+            public void onFailure(Call<ReviewApiModel> call, Throwable t) {
+                Log.d(TAG, "onFailure: "+ t);
+
+            }
+        });
+    }
+
+    /**
+     * Fetches the movie trailers according to movieId and fills the recyclerView
+     * @param movieId movies ID to fetch the movie trailers
+     */
+    private void fetchMovieTrailers(final String movieId){
+        Call<TrailersApiModel> moviesCall =  RetrofitAPICaller.getInstance(DetailsActivity.this)
+                .getMoviesAPIs().getMovieTrailersListAPI(movieId , Constants.API_KEY);
+        moviesCall.enqueue(new Callback<TrailersApiModel>() {
+            @Override
+            public void onResponse(Call<TrailersApiModel> call, Response<TrailersApiModel> response) {
+                Log.d(TAG, "onResponse: " + response);
+                int responseSize = response.body().getResults().size();
+                for (int i = 0; i < responseSize; i++) {
+                    String key = response.body().getResults().get(i).getKey();
+                    String name = response.body().getResults().get(i).getName();
+
+                    MovieTrailers movieTrailers = new MovieTrailers(key , name);
+                    movieTrailersList.add(movieTrailers);
+                }
+
+                MovieTrailersAdapter mMovieTrailersAdapter=
+                        new MovieTrailersAdapter(movieTrailersList, DetailsActivity.this);
+                // create the grid layout with the columns of 2 to display GridView
+                LinearLayoutManager moviewTrailerLayoutManager = new LinearLayoutManager(
+                        DetailsActivity.this ,
+                        LinearLayoutManager.VERTICAL , false);
+                // assign the gridLayoutManager to recyclerview
+                mTrailersRecyclerView.setLayoutManager(moviewTrailerLayoutManager);
+                // set the adapter to recyclerView
+                mTrailersRecyclerView.setAdapter(mMovieTrailersAdapter);
+            }
+
+            @Override
+            public void onFailure(Call<TrailersApiModel> call, Throwable t) {
+                Log.d(TAG, "onFailure: "+ t);
+
+            }
+        });
     }
 }
