@@ -67,24 +67,8 @@ public class MainActivity extends AppCompatActivity
         moviesAdapter = new MoviesAdapter(this);
         mMoviesRecyclerView.setAdapter(moviesAdapter);
 
-        isConnected = NetworkUtils.isNetworkConnected(MainActivity.this);
-        if(isConnected){
-            fetchMoviesList(Constants.MOVIES_POPULAR);
-        }else {
-         /*
-         Ensure a loader is initialized and active. If the loader doesn't already exist, one is
-         created, otherwise the last created loader is re-used.
-         */
-            Bundle mBundle = new Bundle();
-            mBundle.putString("MovieCategory" , Constants.MOVIES_POPULAR);
-            getSupportLoaderManager().initLoader(TASK_LOADER_ID, mBundle, this);
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-//        getSupportLoaderManager().restartLoader(TASK_LOADER_ID, null, this);
+        // loads the data into UI
+        loadMoviesCategory(Constants.MOVIES_POPULAR);
     }
 
     @Override
@@ -111,21 +95,9 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     if(i==0){
-                        if(isConnected){
-                            fetchMoviesList(Constants.MOVIES_POPULAR);
-                        }else {
-                            Bundle mBundle = new Bundle();
-                            mBundle.putString("MovieCategory" , Constants.MOVIES_POPULAR);
-                            getSupportLoaderManager().restartLoader(TASK_LOADER_ID, mBundle, MainActivity.this);
-                        }
+                        loadMoviesCategory(Constants.MOVIES_POPULAR);
                     }else if(i==1){
-                        if(isConnected){
-                            fetchMoviesList(Constants.MOVIES_TOP_RATED);
-                        }else {
-                            Bundle mBundle = new Bundle();
-                            mBundle.putString("MovieCategory" , Constants.MOVIES_TOP_RATED);
-                            getSupportLoaderManager().restartLoader(TASK_LOADER_ID, mBundle, MainActivity.this);
-                        }
+                        loadMoviesCategory(Constants.MOVIES_TOP_RATED);
                     }
                 }
             });
@@ -285,12 +257,31 @@ public class MainActivity extends AppCompatActivity
         }
 
         // bundle the movietype to fetch the movies based on Popular or Top rated
+        triggerLoader(movieCategory);
+    }
+
+    /**
+     * This method loads the data from DB via Content Provider according to movieType
+     * @param movieType either Popular/TopRated
+     */
+
+    private void triggerLoader(String movieType){
         Bundle mBundle = new Bundle();
-        mBundle.putString("MovieCategory" , movieCategory);
-         /*
-         Ensure a loader is initialized and active. If the loader doesn't already exist, one is
-         created, otherwise the last created loader is re-used.
-         */
-        getSupportLoaderManager().restartLoader(TASK_LOADER_ID,mBundle, this);
+        mBundle.putString("MovieCategory" , movieType);
+        getSupportLoaderManager().initLoader(TASK_LOADER_ID, mBundle, MainActivity.this);
+    }
+
+    /**
+     * checks the internet connection and acts as follows
+     * 1.internet connected - True - connects to API and fetches response
+     * @param movieCategory either Popular/TopRated Movies
+     */
+    private void loadMoviesCategory(String movieCategory){
+        isConnected = NetworkUtils.isNetworkConnected(MainActivity.this);
+        if(isConnected){
+            fetchMoviesList(movieCategory);
+        }else {
+            triggerLoader(movieCategory);
+        }
     }
 }
