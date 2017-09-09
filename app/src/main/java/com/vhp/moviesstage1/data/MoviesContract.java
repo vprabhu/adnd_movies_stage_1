@@ -34,6 +34,8 @@ public class MoviesContract {
         public static final String COLUMN_RELEASE_DATE = "release_date";
         public static final String COLUMN_USER_RATING = "user_rating";
         public static final String COLUMN_POSTER = "poster";
+        public static final String COLUMN_MOVIE_CATEGORY = "category";
+        public static final String COLUMN_FAVOURITES = "favourites";
 
     }
 }

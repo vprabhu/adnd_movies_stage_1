@@ -11,8 +11,6 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
-import com.vhp.moviesstage1.model.Movies;
-
 import static com.vhp.moviesstage1.data.MoviesContract.MoviesEntry.TABLE_NAME;
 
 /**
@@ -81,7 +79,7 @@ public class MoviesProvider extends ContentProvider {
             case MOVIES:
                 retCursor =  db.query(TABLE_NAME,
                         projection,
-                        selection,
+                        selection+"=?",
                         selectionArgs,
                         null,
                         null,
@@ -154,8 +152,14 @@ public class MoviesProvider extends ContentProvider {
             case MOVIES:
                 // Insert new values into the database
                 // Inserting values into movies table
-                rowsDeleted = db.delete(TABLE_NAME, null, null);
+                rowsDeleted = db.delete(TABLE_NAME, MoviesContract.MoviesEntry.COLUMN_MOVIE_CATEGORY+"=?", strings);
                 break;
+//            case MOVIE_WITH_ID:
+//                // Get the task ID from the URI path
+//                String id = uri.getPathSegments().get(1);
+//                // Use selections/selectionArgs to filter for this ID
+//                rowsDeleted = db.delete(TABLE_NAME, MoviesContract.MoviesEntry.COLUMN_MOVIE_CATEGORY+"=?", new String[]{id});
+//                break;
             // Set the value for the returnedUri and write the default case for unknown URI's
             // Default case throws an UnsupportedOperationException
             default:

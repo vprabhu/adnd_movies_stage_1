@@ -4,7 +4,6 @@ import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
@@ -18,6 +17,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.vhp.moviesstage1.adapter.MoviesAdapter;
 import com.vhp.moviesstage1.data.MoviesContract;
@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity
     private ProgressBar mProgressBar;
     private List<MoviesInfo> moviesInfoList;
     private MoviesAdapter moviesAdapter;
+    private boolean isConnected;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,15 +67,17 @@ public class MainActivity extends AppCompatActivity
         moviesAdapter = new MoviesAdapter(this);
         mMoviesRecyclerView.setAdapter(moviesAdapter);
 
-        boolean isConnected =  NetworkUtils.isNetworkConnected(MainActivity.this);
+        isConnected = NetworkUtils.isNetworkConnected(MainActivity.this);
         if(isConnected){
-            fetchMoviesList("");
+            fetchMoviesList(Constants.MOVIES_POPULAR);
         }else {
          /*
          Ensure a loader is initialized and active. If the loader doesn't already exist, one is
          created, otherwise the last created loader is re-used.
          */
-            getSupportLoaderManager().initLoader(TASK_LOADER_ID, null, this);
+            Bundle mBundle = new Bundle();
+            mBundle.putString("MovieCategory" , Constants.MOVIES_POPULAR);
+            getSupportLoaderManager().initLoader(TASK_LOADER_ID, mBundle, this);
         }
     }
 
@@ -108,9 +111,21 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
                     if(i==0){
-//                        makeApiRequest(Constants.MOVIES_POPULAR);
+                        if(isConnected){
+                            fetchMoviesList(Constants.MOVIES_POPULAR);
+                        }else {
+                            Bundle mBundle = new Bundle();
+                            mBundle.putString("MovieCategory" , Constants.MOVIES_POPULAR);
+                            getSupportLoaderManager().restartLoader(TASK_LOADER_ID, mBundle, MainActivity.this);
+                        }
                     }else if(i==1){
-//                        makeApiRequest(Constants.MOVIES_TOP_RATED);
+                        if(isConnected){
+                            fetchMoviesList(Constants.MOVIES_TOP_RATED);
+                        }else {
+                            Bundle mBundle = new Bundle();
+                            mBundle.putString("MovieCategory" , Constants.MOVIES_TOP_RATED);
+                            getSupportLoaderManager().restartLoader(TASK_LOADER_ID, mBundle, MainActivity.this);
+                        }
                     }
                 }
             });
@@ -129,6 +144,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        final String movieType = args.getString("MovieCategory");
         return new AsyncTaskLoader<Cursor>(this) {
 
             Cursor mMoviesCursor = null;
@@ -151,10 +167,11 @@ public class MainActivity extends AppCompatActivity
                 // [Hint] use a try/catch block to catch any errors in loading data
 
                 try {
-                    return getContentResolver().query(MoviesContract.MoviesEntry.CONTENT_URI,
+                    return getContentResolver().query(
+                            MoviesContract.MoviesEntry.CONTENT_URI,
                             null,
-                            null,
-                            null,
+                            MoviesContract.MoviesEntry.COLUMN_MOVIE_CATEGORY,
+                            new String[]{movieType},
                             null);
 
                 } catch (Exception e) {
@@ -167,7 +184,14 @@ public class MainActivity extends AppCompatActivity
 
             // deliverResult sends the result of the load, a Cursor, to the registered listener
             public void deliverResult(Cursor data) {
-                mMoviesCursor = data;
+                if(data.getCount()==0){
+                    Toast.makeText(
+                            MainActivity.this ,
+                            getResources().getString(R.string.info_no_offline_data) ,
+                            Toast.LENGTH_LONG).show();
+                }else {
+                    mMoviesCursor = data;
+                }
                 super.deliverResult(data);
             }
         };
@@ -176,7 +200,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         // Update the data that the adapter uses to create ViewHolders
-        moviesAdapter.swapCursor(data);
+        if(data.getCount()!=0){
+            moviesAdapter.swapCursor(data);
+        }
     }
 
     @Override
@@ -185,14 +211,25 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    private void fetchMoviesList(String movieType){
-        Call<Movies> moviesCall = RetrofitAPICaller.getInstance(MainActivity.this)
-                .getMoviesAPIs().getMoviesListAPI(Constants.API_KEY);
+    /**
+     * Fetches the movie list according to movieCategory
+     * @param movieCategory Either Popular Movies or Top rated Movies
+     */
+    private void fetchMoviesList(final String movieCategory){
+        Call<Movies> moviesCall = null;
+        if(movieCategory.equalsIgnoreCase(Constants.MOVIES_POPULAR)){
+            moviesCall = RetrofitAPICaller.getInstance(MainActivity.this)
+                    .getMoviesAPIs().getPopularMoviesListAPI(Constants.API_KEY);
+
+        }else if(movieCategory.equalsIgnoreCase(Constants.MOVIES_TOP_RATED)){
+            moviesCall = RetrofitAPICaller.getInstance(MainActivity.this)
+                    .getMoviesAPIs().getTopRatedMoviesListAPI(Constants.API_KEY);
+        }
         moviesCall.enqueue(new Callback<Movies>() {
             @Override
             public void onResponse(Call<Movies> call, Response<Movies> response) {
                 Log.d(TAG, "onResponse: " + response);
-                insertMoviesResponseIntoDB(response);
+                insertMoviesResponseIntoDB(response , movieCategory);
             }
 
             @Override
@@ -201,15 +238,26 @@ public class MainActivity extends AppCompatActivity
 
             }
         });
+
     }
 
-    private void insertMoviesResponseIntoDB(Response<Movies> response) {
+    /**
+     * This method does following
+     * 1.Delete the current DB Data based on MovieType(Popular/Toprated) to stay updated
+     * 2.Iterate the response , gets the needed fields to make POJO class
+     * 3.Insert the Data into DB via {@link android.content.ContentProvider}
+     * 4.Restarts the {@link Loader} to display the current fetched items according to MovieType(Popular/Toprated)
+     * @param response API response from the movieDB
+     * @param movieCategory Popular or TopRated
+     */
+    private void insertMoviesResponseIntoDB(Response<Movies> response , String movieCategory) {
         int responseSize = response.body().getResults().size();
         List<Result> mMoviesResultList = response.body().getResults();
-        // check if the response size is greater than zero and delete the current DB data
-        if(mMoviesResultList.size()>0){
-            getContentResolver().delete(MoviesContract.MoviesEntry.CONTENT_URI , null , null);
-        }
+        // delete the current DB data according to movietype(Popular or TopRated) to stay updated
+        getContentResolver().delete(
+                MoviesContract.MoviesEntry.CONTENT_URI ,
+                MoviesContract.MoviesEntry.COLUMN_MOVIE_CATEGORY,
+                new String[]{movieCategory});
         for (int i = 0; i < responseSize; i++) {
             ContentValues mContentValues = new ContentValues();
             mContentValues.put(MoviesContract.MoviesEntry.COLUMN_MOVIES_ID ,
@@ -229,14 +277,20 @@ public class MainActivity extends AppCompatActivity
             mContentValues.put(
                     MoviesContract.MoviesEntry.COLUMN_USER_RATING ,
                     mMoviesResultList.get(i).getVoteAverage());
+            mContentValues.put(MoviesContract.MoviesEntry.COLUMN_MOVIE_CATEGORY ,
+                    movieCategory);
             // insert movies data into DB via Content provider
-            Uri mUri = getContentResolver().insert(MoviesContract.MoviesEntry.CONTENT_URI , mContentValues);
-            Log.d(TAG, "insertMoviesResponseIntoDB: " + mUri);
+            getContentResolver().insert(MoviesContract.MoviesEntry.CONTENT_URI , mContentValues);
+            Log.d(TAG, "insertMoviesResponseIntoDB: " + mMoviesResultList.get(i).getOriginalTitle());
         }
-        /*
+
+        // bundle the movietype to fetch the movies based on Popular or Top rated
+        Bundle mBundle = new Bundle();
+        mBundle.putString("MovieCategory" , movieCategory);
+         /*
          Ensure a loader is initialized and active. If the loader doesn't already exist, one is
          created, otherwise the last created loader is re-used.
          */
-        getSupportLoaderManager().initLoader(TASK_LOADER_ID, null, this);
+        getSupportLoaderManager().restartLoader(TASK_LOADER_ID,mBundle, this);
     }
 }
