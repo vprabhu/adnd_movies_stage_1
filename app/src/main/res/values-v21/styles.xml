@@ -10,8 +10,8 @@
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 
-    <style name="RatingBar" parent="Theme.AppCompat">
-        <item name="colorControlNormal">@color/colorTextWhite</item>
-        <item name="colorControlActivated">@color/colorTextReviews</item>
+    <style name="RatingBar" parent="@style/Base.Theme.AppCompat">
+        <item name="colorControlNormal">@color/colorTextReviews</item>
+        <item name="colorControlActivated">@color/colorTextWhite</item>
     </style>
 </resources>

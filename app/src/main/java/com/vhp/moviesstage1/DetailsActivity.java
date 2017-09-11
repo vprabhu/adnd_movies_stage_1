@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -41,6 +42,7 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
     private List<MovieTrailers> movieTrailersList = new ArrayList<>();
     private MoviesInfo movieBasicDetails;
     private RecyclerView mReviewsRecyclerView , mTrailersRecyclerView;
+    private String youtubeId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,16 +69,18 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
-        Button mBackButton = findViewById(R.id.button_details_back);
-        mBackButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
+                // checks the trailer is available , otherwise informs the user about it
+                if(!youtubeId.isEmpty()){
+                    Intent appIntent = new Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse("vnd.youtube:" + youtubeId));
+                    startActivity(appIntent);
+                }else {
+                    Snackbar.make(
+                            view,
+                            getResources().getString(R.string.info_no_trailers),
+                            Snackbar.LENGTH_LONG).show();
+                }
             }
         });
 
@@ -101,15 +105,15 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
         // UI Typecasting
         ImageView mMoviePosterImageView = (ImageView) findViewById(R.id.imageView_movie_poster);
         TextView mTitleTextView = (TextView) findViewById(R.id.textView_movie_name);
-//        TextView mUserratingTextView = (TextView) findViewById(R.id.textView_user_ratings);
+        RatingBar mMovieRatingBar = (RatingBar) findViewById(R.id.ratingBar);
         TextView mReleaseDateTextView = (TextView) findViewById(R.id.textView_release_date);
         TextView mPlotSynopsis = (TextView) findViewById(R.id.textView_plot);
 
         // set the data to UI components
         Picasso.with(DetailsActivity.this).load(movieBasicDetails.getMoviePoster()).into(mMoviePosterImageView);
         mTitleTextView.setText(movieBasicDetails.getMovieTitle());
-        String userRatings = getResources().getString(R.string.info_ratings)+movieBasicDetails.getMovieUserRating();
-//        mUserratingTextView.setText(userRatings);
+        float userRatings = Float.parseFloat(movieBasicDetails.getMovieUserRating());
+        mMovieRatingBar.setRating(userRatings/2);
         String releaseDate = movieBasicDetails.getMovieReleaseDate();
         mReleaseDateTextView.setText(releaseDate);
         String moviePlot = movieBasicDetails.getMoviePlot();
@@ -183,22 +187,31 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
                     movieTrailersList.add(movieTrailers);
                 }
 
-                MovieTrailersAdapter mMovieTrailersAdapter=
-                        new MovieTrailersAdapter(movieTrailersList, DetailsActivity.this);
-                // create the grid layout with the columns of 2 to display GridView
-                LinearLayoutManager moviewTrailerLayoutManager = new LinearLayoutManager(
-                        DetailsActivity.this ,
-                        LinearLayoutManager.VERTICAL , false);
-                // assign the gridLayoutManager to recyclerview
-                mTrailersRecyclerView.setLayoutManager(moviewTrailerLayoutManager);
-                // set the adapter to recyclerView
-                mTrailersRecyclerView.setAdapter(mMovieTrailersAdapter);
-                mTrailersRecyclerView.setNestedScrollingEnabled(false);
-                mTrailersRecyclerView.addItemDecoration(new DividerItemDecoration(
-                        DetailsActivity.this,
-                        DividerItemDecoration.VERTICAL));
+                // take the first trailer and make it to play at FAB listener and remove it from
+                // movie list
+                if(movieTrailersList.size()>0){
+                    youtubeId = movieTrailersList.get(0).getYoutubeId();
+                    movieTrailersList.remove(0);
+                    // Trailer Adapter initialisation
+                    MovieTrailersAdapter mMovieTrailersAdapter=
+                            new MovieTrailersAdapter(movieTrailersList, DetailsActivity.this);
+                    // create the grid layout with the columns of 2 to display GridView
+                    LinearLayoutManager moviewTrailerLayoutManager = new LinearLayoutManager(
+                            DetailsActivity.this ,
+                            LinearLayoutManager.VERTICAL , false);
+                    // assign the gridLayoutManager to recyclerview
+                    mTrailersRecyclerView.setLayoutManager(moviewTrailerLayoutManager);
+                    // set the adapter to recyclerView
+                    mTrailersRecyclerView.setAdapter(mMovieTrailersAdapter);
+                    mTrailersRecyclerView.setNestedScrollingEnabled(false);
+                    mTrailersRecyclerView.addItemDecoration(new DividerItemDecoration(
+                            DetailsActivity.this,
+                            DividerItemDecoration.VERTICAL));
 
-                mTrailersRecyclerView.setItemAnimator(new DefaultItemAnimator());
+                    mTrailersRecyclerView.setItemAnimator(new DefaultItemAnimator());
+                }
+
+
             }
 
             @Override

@@ -23,6 +23,9 @@
     <string name="info_plot_synopsis">Plot Synopsis :</string>
 
     <!-- string for plot synopsis-->
+    <string name="info_no_trailers">No Trailers , Please come back later</string>
+
+    <!-- string for plot synopsis-->
     <string name="info_no_offline_data">No OffLine Data</string>
     <string name="title_activity_scrolling">ScrollingActivity</string>
     <string name="title_release_date">11/09/2017</string>
