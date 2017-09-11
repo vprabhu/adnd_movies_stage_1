@@ -49,6 +49,6 @@
         android:elevation="15dp"
         app:layout_anchor="@id/app_bar"
         app:layout_anchorGravity="center|bottom"
-        app:srcCompat="@mipmap/ic_play_arrow" />
+        app:srcCompat="@mipmap/play" />
 
 </android.support.design.widget.CoordinatorLayout>

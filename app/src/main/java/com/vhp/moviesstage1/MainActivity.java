@@ -13,9 +13,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -46,6 +47,8 @@ public class MainActivity extends AppCompatActivity
     private List<MoviesInfo> moviesInfoList;
     private MoviesAdapter moviesAdapter;
     private boolean isConnected;
+    private Button mMostPopularButton;
+    private Button mTopRatedButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +72,34 @@ public class MainActivity extends AppCompatActivity
 
         // loads the data into UI
         loadMoviesCategory(Constants.MOVIES_POPULAR);
+
+        mMostPopularButton = findViewById(R.id.button_most_popular);
+        mMostPopularButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                loadMoviesCategory(Constants.MOVIES_POPULAR);
+                //changing the most popular button to selected mode
+                mMostPopularButton.setBackgroundResource(R.drawable.drawable_movies_select);
+                mMostPopularButton.setTextColor(getResources().getColor(R.color.colorTextWhite));
+                // changing the top rated button to normal mode
+                mTopRatedButton.setBackgroundResource(R.drawable.drawable_movies_normal);
+                mTopRatedButton.setTextColor(getResources().getColor(R.color.colorTextReviews));
+            }
+        });
+
+        mTopRatedButton = findViewById(R.id.button_top_rated);
+        mTopRatedButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                loadMoviesCategory(Constants.MOVIES_TOP_RATED);
+                //changing the top rated button to selected mode
+                mTopRatedButton.setBackgroundResource(R.drawable.drawable_movies_select);
+                mTopRatedButton.setTextColor(getResources().getColor(R.color.colorTextWhite));
+                //changing the top rated button to selected mode
+                mMostPopularButton.setBackgroundResource(R.drawable.drawable_movies_normal);
+                mMostPopularButton.setTextColor(getResources().getColor(R.color.colorTextReviews));
+            }
+        });
     }
 
 //    @Override
@@ -89,7 +120,7 @@ public class MainActivity extends AppCompatActivity
 
             final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1);
             arrayAdapter.add(getResources().getString(R.string.title_most_popular));
-            arrayAdapter.add(getResources().getString(R.string.info_top_rated));
+            arrayAdapter.add(getResources().getString(R.string.title_top_rated));
 
             builder.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
                 @Override
@@ -173,7 +204,7 @@ public class MainActivity extends AppCompatActivity
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
         // Update the data that the adapter uses to create ViewHolders
 //        if(data.getCount()!=0){
-            moviesAdapter.swapCursor(data);
+        moviesAdapter.swapCursor(data);
 //        }
     }
 

@@ -5,10 +5,13 @@
     <string name="title_sort_by">Sort By</string>
 
     <!-- string to show TopRated-->
-    <string name="info_top_rated">Top Rated</string>
+    <string name="title_top_rated">Top Rated</string>
 
     <!-- string to show mostPopular-->
     <string name="title_most_popular">Most Popular</string>
+
+    <!-- string to show mostPopular-->
+    <string name="title_favourites">Favourites</string>
 
     <!-- string to show user ratings-->
     <string name="info_ratings">Ratings(/10) : </string>

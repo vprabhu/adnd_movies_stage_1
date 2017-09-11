@@ -8,4 +8,5 @@
     <color name="colorBackground">#4FB5FE</color>
     <color name="colorTextWhite">#EFF1f2</color>
     <color name="colorTextReviews">#2F4760</color>
+    <color name="colorHighlight">#9CC2DD</color>
 </resources>
