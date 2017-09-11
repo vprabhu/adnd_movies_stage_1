@@ -19,13 +19,23 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fitsSystemWindows="false"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:layout_scrollFlags="scroll"
             app:toolbarId="@+id/toolbar">
 
+            <Button
+                android:id="@+id/button_details_back"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginTop="35dp"
+                android:background="@mipmap/ic_arrow_back_white"
+                />
+
             <ImageView
+                android:id="@+id/imageView_movie_poster"
                 android:layout_width="match_parent"
                 android:layout_height="350dp"
-                app:srcCompat="@mipmap/avatar"
                 android:scaleType="centerCrop"/>
         </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
@@ -37,7 +47,6 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:elevation="15dp"
-        android:background="@mipmap/play"
         app:layout_anchor="@id/app_bar"
         app:layout_anchorGravity="center|bottom"
         app:srcCompat="@mipmap/ic_play_arrow" />

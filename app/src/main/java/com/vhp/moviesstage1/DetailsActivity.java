@@ -3,11 +3,16 @@ package com.vhp.moviesstage1;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -40,23 +45,40 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_details);
+        setContentView(R.layout.activity_details_scrolling);
 
         // getting the movie data from budle which is passed from MainActivity
         Bundle data = getIntent().getExtras();
         movieBasicDetails = data.getParcelable("MoviesInfo");
         String movieId = movieBasicDetails.getMovieId();
 
-        // set activity title as selected movie name
-        getSupportActionBar().setTitle(movieBasicDetails.getMovieTitle());
-        // set back button
-        getSupportActionBar().setHomeButtonEnabled(true);
+//        // set activity title as selected movie name
+//        getSupportActionBar().setTitle(movieBasicDetails.getMovieTitle());
+//        // set back button
+//        getSupportActionBar().setHomeButtonEnabled(true);
 
         mReviewsRecyclerView = (RecyclerView) findViewById(R.id.recyclerView_movie_reviews);
         mTrailersRecyclerView = (RecyclerView) findViewById(R.id.recyclerView_movie_trailers);
         View mRelatedInfoView = (View) findViewById(R.id.view_related_info);
 
 //        makeMovieReviewsApiRequest(movieId);
+
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
+
+        Button mBackButton = findViewById(R.id.button_details_back);
+        mBackButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
 
         // sets the movie basic details
         bindDataToUI();
@@ -77,20 +99,20 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
      */
     private void  bindDataToUI(){
         // UI Typecasting
-        ImageView mMoviePosterImageView = (ImageView) findViewById(R.id.imageView_detail);
+        ImageView mMoviePosterImageView = (ImageView) findViewById(R.id.imageView_movie_poster);
         TextView mTitleTextView = (TextView) findViewById(R.id.textView_movie_name);
-        TextView mUserratingTextView = (TextView) findViewById(R.id.textView_user_ratings);
+//        TextView mUserratingTextView = (TextView) findViewById(R.id.textView_user_ratings);
         TextView mReleaseDateTextView = (TextView) findViewById(R.id.textView_release_date);
-        TextView mPlotSynopsis = (TextView) findViewById(R.id.textView_movie_plot);
+        TextView mPlotSynopsis = (TextView) findViewById(R.id.textView_plot);
 
         // set the data to UI components
         Picasso.with(DetailsActivity.this).load(movieBasicDetails.getMoviePoster()).into(mMoviePosterImageView);
         mTitleTextView.setText(movieBasicDetails.getMovieTitle());
         String userRatings = getResources().getString(R.string.info_ratings)+movieBasicDetails.getMovieUserRating();
-        mUserratingTextView.setText(userRatings);
-        String releaseDate = getResources().getString(R.string.info_release_date)+ movieBasicDetails.getMovieReleaseDate();
+//        mUserratingTextView.setText(userRatings);
+        String releaseDate = movieBasicDetails.getMovieReleaseDate();
         mReleaseDateTextView.setText(releaseDate);
-        String moviePlot = getResources().getString(R.string.info_plot_synopsis)+ "\n"+ movieBasicDetails.getMoviePlot();
+        String moviePlot = movieBasicDetails.getMoviePlot();
         mPlotSynopsis.setText(moviePlot);
     }
 
@@ -125,6 +147,12 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
                 mReviewsRecyclerView.setLayoutManager(gridLayoutManager);
                 // set the adapter to recyclerView
                 mReviewsRecyclerView.setAdapter(mMoviesReviews);
+                mReviewsRecyclerView.setNestedScrollingEnabled(false);
+                mTrailersRecyclerView.addItemDecoration(new DividerItemDecoration(
+                        DetailsActivity.this,
+                        DividerItemDecoration.VERTICAL));
+
+                mTrailersRecyclerView.setItemAnimator(new DefaultItemAnimator());
             }
 
             @Override
@@ -165,12 +193,17 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
                 mTrailersRecyclerView.setLayoutManager(moviewTrailerLayoutManager);
                 // set the adapter to recyclerView
                 mTrailersRecyclerView.setAdapter(mMovieTrailersAdapter);
+                mTrailersRecyclerView.setNestedScrollingEnabled(false);
+                mTrailersRecyclerView.addItemDecoration(new DividerItemDecoration(
+                        DetailsActivity.this,
+                        DividerItemDecoration.VERTICAL));
+
+                mTrailersRecyclerView.setItemAnimator(new DefaultItemAnimator());
             }
 
             @Override
             public void onFailure(Call<TrailersApiModel> call, Throwable t) {
                 Log.d(TAG, "onFailure: "+ t);
-
             }
         });
     }
