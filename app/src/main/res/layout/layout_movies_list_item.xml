@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp">
 
     <ImageView
         android:layout_gravity="center"
@@ -11,20 +12,22 @@
         android:scaleType="centerCrop"
         android:layout_width="match_parent"
         android:layout_height="@dimen/dimen_grid_item_image_height"
-        tools:src="@mipmap/ic_launcher"/>
+        tools:src="@mipmap/avatar"
+        android:elevation="10dp"/>
 
     <TextView
         android:id="@+id/textView_title"
-        android:background="@android:color/black"
-        android:alpha="0.5"
         tools:text="Movie Name"
         android:ellipsize="end"
         android:maxLength="30"
-        android:textStyle="bold"
-        android:textColor="@android:color/white"
+        android:textStyle="italic"
+        android:textColor="@color/colorTextWhite"
+        android:gravity="center"
+        android:textAllCaps="true"
+        android:maxLines="2"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Caption"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/dimen_grid_item_text_height"
-        android:layout_gravity="bottom"
-        android:padding="@dimen/dimen_root_padding"/>
+        android:layout_height="wrap_content"
+        android:padding="5dp"/>
 
-</FrameLayout>
+</LinearLayout>
