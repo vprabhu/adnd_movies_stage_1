@@ -18,7 +18,7 @@ import static com.vhp.moviesstage1.data.MoviesContract.MoviesEntry.TABLE_NAME;
  */
 
 public class MoviesProvider extends ContentProvider {
-    // Define final integer constants for the directory of tasks and a single item.
+    // Define final integer constants for the directory of movies and a single item.
     public static final int MOVIES = 100;
     public static final int MOVIE_WITH_ID = 101;
 
@@ -108,10 +108,10 @@ public class MoviesProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues contentValues) {
-        // Get access to the task database (to write new data to)
+        // Get access to the movie database (to write new data to)
         final SQLiteDatabase db = moviesDBHelper.getWritableDatabase();
 
-        // Write URI matching code to identify the match for the tasks directory
+        // Write URI matching code to identify the match for the movies directory
         int match = sUriMatcher.match(uri);
         Uri returnUri; // URI to be returned
 
@@ -142,10 +142,10 @@ public class MoviesProvider extends ContentProvider {
     @Override
     public int delete(@NonNull Uri uri, @Nullable String s, @Nullable String[] strings) {
         int rowsDeleted;
-        // Get access to the task database (to write new data to)
+        // Get access to the movie database (to write new data to)
         final SQLiteDatabase db = moviesDBHelper.getWritableDatabase();
 
-        // Write URI matching code to identify the match for the tasks directory
+        // Write URI matching code to identify the match for the movies directory
         int match = sUriMatcher.match(uri);
 
         switch (match) {
@@ -175,10 +175,10 @@ public class MoviesProvider extends ContentProvider {
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues contentValues, @Nullable String s, @Nullable String[] strings) {
         int rowsUpdated;
-        // Get access to the task database (to write new data to)
+        // Get access to the movie database (to write new data to)
         final SQLiteDatabase db = moviesDBHelper.getWritableDatabase();
 
-        // Write URI matching code to identify the match for the tasks directory
+        // Write URI matching code to identify the match for the Movies directory
         int match = sUriMatcher.match(uri);
         switch (match){
             case MOVIES:
