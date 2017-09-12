@@ -45,10 +45,6 @@ public class MainActivity extends AppCompatActivity
     private final int DB_ACCESS = 1;
     private final int API_ACCESS = 0;
 
-
-    private RecyclerView mMoviesRecyclerView;
-    private ProgressBar mProgressBar;
-    private List<MoviesInfo> moviesInfoList;
     private MoviesAdapter moviesAdapter;
     private Button mMostPopularButton;
     private Button mTopRatedButton;
@@ -61,8 +57,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         // UI Typecasting
-        mMoviesRecyclerView = (RecyclerView) findViewById(R.id.recyclerView_movies);
-        mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
+        RecyclerView mMoviesRecyclerView = findViewById(R.id.recyclerView_movies);
         // api request to fetch the movies popular API as default
         // makeApiRequest(Constants.MOVIES_POPULAR);
 
@@ -117,12 +112,6 @@ public class MainActivity extends AppCompatActivity
                         mMostPopularButton);
             }
         });
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        moviesAdapter.notifyDataSetChanged();
     }
 
     @Override

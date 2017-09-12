@@ -58,15 +58,8 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
         movieBasicDetails = data.getParcelable("MoviesInfo");
         final String movieId = movieBasicDetails.getMovieId();
 
-//        // set activity title as selected movie name
-//        getSupportActionBar().setTitle(movieBasicDetails.getMovieTitle());
-//        // set back button
-//        getSupportActionBar().setHomeButtonEnabled(true);
-
-        mReviewsRecyclerView = (RecyclerView) findViewById(R.id.recyclerView_movie_reviews);
-        mTrailersRecyclerView = (RecyclerView) findViewById(R.id.recyclerView_movie_trailers);
-
-//        makeMovieReviewsApiRequest(movieId);
+        mReviewsRecyclerView = findViewById(R.id.recyclerView_movie_reviews);
+        mTrailersRecyclerView = findViewById(R.id.recyclerView_movie_trailers);
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -103,6 +96,7 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
                     isFavouritesByUser = 0;
                     mAddFavouritesButton.setBackgroundResource(R.mipmap.ic_favorite_border);
                 }
+                // update the DB about favourite movie added
                 String[] movieIds = {movieId};
                 ContentValues mContentValues = new ContentValues();
                 mContentValues.put(MoviesContract.MoviesEntry.COLUMN_FAVOURITES , isFavouritesByUser);
@@ -130,11 +124,11 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
      */
     private void  bindDataToUI(int movieFavourites){
         // UI Typecasting
-        ImageView mMoviePosterImageView = (ImageView) findViewById(R.id.imageView_movie_poster);
-        TextView mTitleTextView = (TextView) findViewById(R.id.textView_movie_name);
-        RatingBar mMovieRatingBar = (RatingBar) findViewById(R.id.ratingBar);
-        TextView mReleaseDateTextView = (TextView) findViewById(R.id.textView_release_date);
-        TextView mPlotSynopsis = (TextView) findViewById(R.id.textView_plot);
+        ImageView mMoviePosterImageView = findViewById(R.id.imageView_movie_poster);
+        TextView mTitleTextView =  findViewById(R.id.textView_movie_name);
+        RatingBar mMovieRatingBar = findViewById(R.id.ratingBar);
+        TextView mReleaseDateTextView =  findViewById(R.id.textView_release_date);
+        TextView mPlotSynopsis = findViewById(R.id.textView_plot);
         mAddFavouritesButton = findViewById(R.id.button_add_favourites);
 
         // set the data to UI components
@@ -173,14 +167,12 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
                     movieReviewsList.add(movieReviews);
                 }
 
-                // create an adapter which takes the moviesList and inflates the view with data
+                // create an adapter which takes the movie reviews and inflates the view with data
                 MovieReviewsAdapter mMoviesReviews=
                         new MovieReviewsAdapter(movieReviewsList);
-                // create the grid layout with the columns of 2 to display GridView
                 LinearLayoutManager gridLayoutManager = new LinearLayoutManager(
                         DetailsActivity.this ,
                         LinearLayoutManager.VERTICAL , false);
-                // assign the gridLayoutManager to recyclerview
                 mReviewsRecyclerView.setLayoutManager(gridLayoutManager);
                 // set the adapter to recyclerView
                 mReviewsRecyclerView.setAdapter(mMoviesReviews);
@@ -228,11 +220,9 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
                     // Trailer Adapter initialisation
                     MovieTrailersAdapter mMovieTrailersAdapter=
                             new MovieTrailersAdapter(movieTrailersList, DetailsActivity.this);
-                    // create the grid layout with the columns of 2 to display GridView
                     LinearLayoutManager moviewTrailerLayoutManager = new LinearLayoutManager(
                             DetailsActivity.this ,
                             LinearLayoutManager.VERTICAL , false);
-                    // assign the gridLayoutManager to recyclerview
                     mTrailersRecyclerView.setLayoutManager(moviewTrailerLayoutManager);
                     // set the adapter to recyclerView
                     mTrailersRecyclerView.setAdapter(mMovieTrailersAdapter);
@@ -252,6 +242,13 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
         });
     }
 
+    /**
+     * returns an integer to show whether movie is favourite or not
+     * @param movieIdParams movieId to query for
+     * @return status either
+     *                0=not favourite
+     *                1 = favourite
+     */
     private int isFavourites(String movieIdParams){
         int status = 0;
         String[] projection = {MoviesContract.MoviesEntry.COLUMN_FAVOURITES};
