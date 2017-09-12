@@ -25,4 +25,7 @@ public class Constants {
 
     /** constant to fetch the movie reviews data */
     public final static String MOVIES_TRAILERS = "movie/{moviesId}/videos";
+
+    /** final Constant String to fetch the user's favourite movies*/
+    public static final String MOVIES_FAVOURITES = "movie/FAVOURITE";
 }

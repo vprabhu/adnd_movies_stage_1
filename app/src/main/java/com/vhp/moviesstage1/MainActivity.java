@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
@@ -49,10 +50,10 @@ public class MainActivity extends AppCompatActivity
     private ProgressBar mProgressBar;
     private List<MoviesInfo> moviesInfoList;
     private MoviesAdapter moviesAdapter;
-    private boolean isConnected;
     private Button mMostPopularButton;
     private Button mTopRatedButton;
     private Button mFavouritesButton;
+    private String movieType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,23 +75,21 @@ public class MainActivity extends AppCompatActivity
         moviesAdapter = new MoviesAdapter(this);
         mMoviesRecyclerView.setAdapter(moviesAdapter);
 
-        // loads the data into UI
-        loadMoviesCategory(Constants.MOVIES_POPULAR);
+        if(savedInstanceState==null || !savedInstanceState.containsKey("restoreMoviesList")){
+            // loads the data into UI
+            loadMoviesCategory(Constants.MOVIES_POPULAR);
+            movieType = Constants.MOVIES_POPULAR;
+        }
 
         mMostPopularButton = findViewById(R.id.button_most_popular);
         mMostPopularButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                loadMoviesCategory(Constants.MOVIES_POPULAR);
-                //changing the most popular button to selected mode
-                mMostPopularButton.setBackgroundResource(R.drawable.drawable_movies_select);
-                mMostPopularButton.setTextColor(getResources().getColor(R.color.colorTextWhite));
-                // changing the top rated button to normal mode
-                mTopRatedButton.setBackgroundResource(R.drawable.drawable_movies_normal);
-                mTopRatedButton.setTextColor(getResources().getColor(R.color.colorTextReviews));
-                // changing the Favourite button to normal mode
-                mFavouritesButton.setBackgroundResource(R.drawable.drawable_movies_normal);
-                mFavouritesButton.setTextColor(getResources().getColor(R.color.colorTextReviews));
+                loadUserSelectedMovies(
+                        Constants.MOVIES_POPULAR ,
+                        mMostPopularButton ,
+                        mFavouritesButton ,
+                        mTopRatedButton);
             }
         });
 
@@ -98,16 +97,12 @@ public class MainActivity extends AppCompatActivity
         mTopRatedButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                loadMoviesCategory(Constants.MOVIES_TOP_RATED);
-                //changing the top rated button to selected mode
-                mTopRatedButton.setBackgroundResource(R.drawable.drawable_movies_select);
-                mTopRatedButton.setTextColor(getResources().getColor(R.color.colorTextWhite));
-                //changing the most popular button to normal mode
-                mMostPopularButton.setBackgroundResource(R.drawable.drawable_movies_normal);
-                mMostPopularButton.setTextColor(getResources().getColor(R.color.colorTextReviews));
-                // changing the Favourite button to normal mode
-                mFavouritesButton.setBackgroundResource(R.drawable.drawable_movies_normal);
-                mFavouritesButton.setTextColor(getResources().getColor(R.color.colorTextReviews));
+                loadUserSelectedMovies(
+                        Constants.MOVIES_TOP_RATED ,
+                        mTopRatedButton ,
+                        mFavouritesButton ,
+                        mMostPopularButton);
+
             }
         });
 
@@ -115,16 +110,11 @@ public class MainActivity extends AppCompatActivity
         mFavouritesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                triggerLoader(DB_ACCESS , "");
-                //changing the Favourite button to selected mode
-                mFavouritesButton.setBackgroundResource(R.drawable.drawable_movies_select);
-                mFavouritesButton.setTextColor(getResources().getColor(R.color.colorTextWhite));
-                //changing the most popular button to normal mode
-                mMostPopularButton.setBackgroundResource(R.drawable.drawable_movies_normal);
-                mMostPopularButton.setTextColor(getResources().getColor(R.color.colorTextReviews));
-                // changing the top rated button to normal mode
-                mTopRatedButton.setBackgroundResource(R.drawable.drawable_movies_normal);
-                mTopRatedButton.setTextColor(getResources().getColor(R.color.colorTextReviews));
+                loadUserSelectedMovies(
+                        Constants.MOVIES_FAVOURITES ,
+                        mFavouritesButton ,
+                        mTopRatedButton ,
+                        mMostPopularButton);
             }
         });
     }
@@ -133,6 +123,38 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         moviesAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("restoreMoviesList" , movieType);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        String persistMovieType = savedInstanceState.getString("restoreMoviesList");
+        if(persistMovieType.equalsIgnoreCase(Constants.MOVIES_POPULAR)){
+            loadUserSelectedMovies(
+                    Constants.MOVIES_POPULAR ,
+                    mMostPopularButton ,
+                    mFavouritesButton ,
+                    mTopRatedButton);
+        }else if(persistMovieType.equalsIgnoreCase(Constants.MOVIES_TOP_RATED)){
+            loadUserSelectedMovies(
+                    Constants.MOVIES_TOP_RATED ,
+                    mTopRatedButton ,
+                    mFavouritesButton ,
+                    mMostPopularButton);
+
+        }else if(persistMovieType.equalsIgnoreCase(Constants.MOVIES_FAVOURITES)){
+            loadUserSelectedMovies(
+                    Constants.MOVIES_FAVOURITES ,
+                    mFavouritesButton ,
+                    mTopRatedButton ,
+                    mMostPopularButton);
+        }
     }
 
     @Override
@@ -330,7 +352,7 @@ public class MainActivity extends AppCompatActivity
      * @param movieCategory either Popular/TopRated Movies
      */
     private void loadMoviesCategory(String movieCategory){
-        isConnected = NetworkUtils.isNetworkConnected(MainActivity.this);
+        boolean isConnected = NetworkUtils.isNetworkConnected(MainActivity.this);
         if(isConnected){
             fetchMoviesList(movieCategory);
         }else {
@@ -357,5 +379,35 @@ public class MainActivity extends AppCompatActivity
         }
         mCursor.close();
         return status;
+    }
+
+    /**
+     * loads the user seleccted movie types to RecyclerView
+     * @param movieTypeParams movie Type
+     *                        either
+     *                        1.{@link Constants}.MOVIES_POPULAR
+     *                        2.{@link Constants}.MOVIES_TOP_RATED
+     *                        2.{@link Constants}.MOVIES_FAVOURITES
+     * @param toBeSelected Button's UI to be changed to selected mode
+     * @param deselectButton1 Button's UI to be changed to normal mode
+     * @param deselectButton2 Button's UI to be changed to normal mode
+     */
+    private void loadUserSelectedMovies(String movieTypeParams, Button toBeSelected ,
+                                        Button deselectButton1 , Button deselectButton2){
+        movieType = movieTypeParams;
+        if(movieType.equalsIgnoreCase(Constants.MOVIES_FAVOURITES)){
+            triggerLoader(DB_ACCESS , "");
+        }else {
+            loadMoviesCategory(movieTypeParams);
+        }
+        //change to selected mode
+        toBeSelected.setBackgroundResource(R.drawable.drawable_movies_select);
+        toBeSelected.setTextColor(getResources().getColor(R.color.colorTextWhite));
+        //change to normal mode
+        deselectButton1.setBackgroundResource(R.drawable.drawable_movies_normal);
+        deselectButton1.setTextColor(getResources().getColor(R.color.colorTextReviews));
+        //change to normal mode
+        deselectButton2.setBackgroundResource(R.drawable.drawable_movies_normal);
+        deselectButton2.setTextColor(getResources().getColor(R.color.colorTextReviews));
     }
 }
