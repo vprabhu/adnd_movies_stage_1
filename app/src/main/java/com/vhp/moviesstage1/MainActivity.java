@@ -41,6 +41,9 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = "MainActivity";
     private static final int TASK_LOADER_ID = 101;
+    private final int DB_ACCESS = 1;
+    private final int API_ACCESS = 0;
+
 
     private RecyclerView mMoviesRecyclerView;
     private ProgressBar mProgressBar;
@@ -49,6 +52,7 @@ public class MainActivity extends AppCompatActivity
     private boolean isConnected;
     private Button mMostPopularButton;
     private Button mTopRatedButton;
+    private Button mFavouritesButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +88,9 @@ public class MainActivity extends AppCompatActivity
                 // changing the top rated button to normal mode
                 mTopRatedButton.setBackgroundResource(R.drawable.drawable_movies_normal);
                 mTopRatedButton.setTextColor(getResources().getColor(R.color.colorTextReviews));
+                // changing the Favourite button to normal mode
+                mFavouritesButton.setBackgroundResource(R.drawable.drawable_movies_normal);
+                mFavouritesButton.setTextColor(getResources().getColor(R.color.colorTextReviews));
             }
         });
 
@@ -95,18 +102,38 @@ public class MainActivity extends AppCompatActivity
                 //changing the top rated button to selected mode
                 mTopRatedButton.setBackgroundResource(R.drawable.drawable_movies_select);
                 mTopRatedButton.setTextColor(getResources().getColor(R.color.colorTextWhite));
-                //changing the top rated button to selected mode
+                //changing the most popular button to normal mode
                 mMostPopularButton.setBackgroundResource(R.drawable.drawable_movies_normal);
                 mMostPopularButton.setTextColor(getResources().getColor(R.color.colorTextReviews));
+                // changing the Favourite button to normal mode
+                mFavouritesButton.setBackgroundResource(R.drawable.drawable_movies_normal);
+                mFavouritesButton.setTextColor(getResources().getColor(R.color.colorTextReviews));
+            }
+        });
+
+        mFavouritesButton = findViewById(R.id.button_show_favourites);
+        mFavouritesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                triggerLoader(DB_ACCESS , "");
+                //changing the Favourite button to selected mode
+                mFavouritesButton.setBackgroundResource(R.drawable.drawable_movies_select);
+                mFavouritesButton.setTextColor(getResources().getColor(R.color.colorTextWhite));
+                //changing the most popular button to normal mode
+                mMostPopularButton.setBackgroundResource(R.drawable.drawable_movies_normal);
+                mMostPopularButton.setTextColor(getResources().getColor(R.color.colorTextReviews));
+                // changing the top rated button to normal mode
+                mTopRatedButton.setBackgroundResource(R.drawable.drawable_movies_normal);
+                mTopRatedButton.setTextColor(getResources().getColor(R.color.colorTextReviews));
             }
         });
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        getMenuInflater().inflate(R.menu.main , menu);
-//        return super.onCreateOptionsMenu(menu);
-//    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        moviesAdapter.notifyDataSetChanged();
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -148,6 +175,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         final String movieType = args.getString("MovieCategory");
+        final int movieSource = args.getInt("MovieSource");
+
         return new AsyncTaskLoader<Cursor>(this) {
 
             Cursor mMoviesCursor = null;
@@ -168,20 +197,34 @@ public class MainActivity extends AppCompatActivity
 
                 // Query and load all task data in the background; sort by priority
                 // [Hint] use a try/catch block to catch any errors in loading data
-
+                Cursor mCursor = null;
                 try {
-                    return getContentResolver().query(
-                            MoviesContract.MoviesEntry.CONTENT_URI,
-                            null,
-                            MoviesContract.MoviesEntry.COLUMN_MOVIE_CATEGORY,
-                            new String[]{movieType},
-                            null);
+                    switch (movieSource){
+                        case DB_ACCESS:
+                            mCursor =  getContentResolver().query(
+                                    MoviesContract.MoviesEntry.CONTENT_URI,
+                                    null,
+                                    MoviesContract.MoviesEntry.COLUMN_FAVOURITES,
+                                    new String[]{String.valueOf(1)},
+                                    null);
+                            break;
+
+                        case API_ACCESS:
+                            mCursor = getContentResolver().query(
+                                    MoviesContract.MoviesEntry.CONTENT_URI,
+                                    null,
+                                    MoviesContract.MoviesEntry.COLUMN_MOVIE_CATEGORY,
+                                    new String[]{movieType},
+                                    null);
+                            break;
+                    }
 
                 } catch (Exception e) {
                     Log.e(TAG, "Failed to asynchronously load data.");
                     e.printStackTrace();
                     return null;
                 }
+                return mCursor;
             }
 
 
@@ -255,39 +298,47 @@ public class MainActivity extends AppCompatActivity
     private void insertMoviesResponseIntoDB(Response<Movies> response , String movieCategory) {
         int responseSize = response.body().getResults().size();
         List<Result> mMoviesResultList = response.body().getResults();
-        // delete the current DB data according to movietype(Popular or TopRated) to stay updated
-        getContentResolver().delete(
-                MoviesContract.MoviesEntry.CONTENT_URI ,
-                MoviesContract.MoviesEntry.COLUMN_MOVIE_CATEGORY,
-                new String[]{movieCategory});
-        for (int i = 0; i < responseSize; i++) {
-            ContentValues mContentValues = new ContentValues();
-            mContentValues.put(MoviesContract.MoviesEntry.COLUMN_MOVIES_ID ,
-                    mMoviesResultList.get(i).getId().toString());
-            mContentValues.put(
-                    MoviesContract.MoviesEntry.COLUMN_TITLE ,
-                    mMoviesResultList.get(i).getOriginalTitle());
-            mContentValues.put(
-                    MoviesContract.MoviesEntry.COLUMN_PLOT ,
-                    mMoviesResultList.get(i).getOverview());
-            mContentValues.put(
-                    MoviesContract.MoviesEntry.COLUMN_RELEASE_DATE ,
-                    mMoviesResultList.get(i).getReleaseDate());
-            mContentValues.put(
-                    MoviesContract.MoviesEntry.COLUMN_POSTER ,
-                    "https://image.tmdb.org/t/p/w500"+mMoviesResultList.get(i).getPosterPath());
-            mContentValues.put(
-                    MoviesContract.MoviesEntry.COLUMN_USER_RATING ,
-                    mMoviesResultList.get(i).getVoteAverage());
-            mContentValues.put(MoviesContract.MoviesEntry.COLUMN_MOVIE_CATEGORY ,
-                    movieCategory);
-            // insert movies data into DB via Content provider
-            getContentResolver().insert(MoviesContract.MoviesEntry.CONTENT_URI , mContentValues);
-            Log.d(TAG, "insertMoviesResponseIntoDB: " + mMoviesResultList.get(i).getOriginalTitle());
-        }
 
+        // iterating response list to insert to DB via ContentProvider
+        for (int i = 0; i < responseSize; i++) {
+            // get the MovieID
+            String movieId = mMoviesResultList.get(i).getId().toString();
+            //check for favourites
+            int favouriteStatus = getMovieFavouriteStatus(movieId);
+            // insert the new Movie data which user has not favourite it yet
+            if(favouriteStatus==0){
+                // deleting the old data to stay updated
+                getContentResolver().delete(
+                        MoviesContract.MoviesEntry.CONTENT_URI ,
+                        MoviesContract.MoviesEntry.COLUMN_MOVIES_ID,
+                        new String[]{movieId});
+                ContentValues mContentValues = new ContentValues();
+                mContentValues.put(MoviesContract.MoviesEntry.COLUMN_MOVIES_ID ,
+                        mMoviesResultList.get(i).getId().toString());
+                mContentValues.put(
+                        MoviesContract.MoviesEntry.COLUMN_TITLE ,
+                        mMoviesResultList.get(i).getOriginalTitle());
+                mContentValues.put(
+                        MoviesContract.MoviesEntry.COLUMN_PLOT ,
+                        mMoviesResultList.get(i).getOverview());
+                mContentValues.put(
+                        MoviesContract.MoviesEntry.COLUMN_RELEASE_DATE ,
+                        mMoviesResultList.get(i).getReleaseDate());
+                mContentValues.put(
+                        MoviesContract.MoviesEntry.COLUMN_POSTER ,
+                        "https://image.tmdb.org/t/p/w500"+mMoviesResultList.get(i).getPosterPath());
+                mContentValues.put(
+                        MoviesContract.MoviesEntry.COLUMN_USER_RATING ,
+                        mMoviesResultList.get(i).getVoteAverage());
+                mContentValues.put(MoviesContract.MoviesEntry.COLUMN_MOVIE_CATEGORY ,
+                        movieCategory);
+                // insert movies data into DB via Content provider
+                getContentResolver().insert(MoviesContract.MoviesEntry.CONTENT_URI , mContentValues);
+//                Log.d(TAG, "insertMoviesResponseIntoDB: " + mMoviesResultList.get(i).getOriginalTitle());
+            }
+        }
         // bundle the movietype to fetch the movies based on Popular or Top rated
-        triggerLoader(movieCategory);
+        triggerLoader(API_ACCESS , movieCategory);
     }
 
     /**
@@ -295,9 +346,10 @@ public class MainActivity extends AppCompatActivity
      * @param movieType either Popular/TopRated
      */
 
-    private void triggerLoader(String movieType){
+    private void triggerLoader(int source , String movieType){
         Bundle mBundle = new Bundle();
         mBundle.putString("MovieCategory" , movieType);
+        mBundle.putInt("MovieSource" , source);
         getSupportLoaderManager().restartLoader(TASK_LOADER_ID, mBundle, MainActivity.this);
     }
 
@@ -311,7 +363,27 @@ public class MainActivity extends AppCompatActivity
         if(isConnected){
             fetchMoviesList(movieCategory);
         }else {
-            triggerLoader(movieCategory);
+            triggerLoader(API_ACCESS , movieCategory);
         }
+    }
+
+    /**
+     * check the favourite status on movie
+     * @param movieId movieId
+     * @return status if status = 1 User Favourite status =0 not Favourite yet
+     */
+    private int getMovieFavouriteStatus(String movieId){
+        int status = 0;
+        String[] projection = {MoviesContract.MoviesEntry.COLUMN_FAVOURITES};
+        String[] movieIds = {movieId};
+        Cursor mCursor = getContentResolver().query( MoviesContract.MoviesEntry.CONTENT_URI ,
+                projection ,
+                MoviesContract.MoviesEntry.COLUMN_MOVIES_ID ,
+                movieIds ,
+                null);
+        if(mCursor.moveToFirst()){
+            status = mCursor.getInt(mCursor.getColumnIndex(MoviesContract.MoviesEntry.COLUMN_FAVOURITES));
+        }
+        return status;
     }
 }

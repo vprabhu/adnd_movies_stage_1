@@ -22,7 +22,8 @@ public class MoviesInfo implements Parcelable{
     private String movieReleaseDate;
 
 
-    public MoviesInfo(String movieId, String movieTitle, String moviePoster, String moviePlot, String movieUserRating, String movieReleaseDate) {
+    public MoviesInfo(String movieId, String movieTitle, String moviePoster, String moviePlot,
+                      String movieUserRating, String movieReleaseDate) {
         this.movieId = movieId;
         this.movieTitle = movieTitle;
         this.moviePoster = moviePoster;

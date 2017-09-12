@@ -1,6 +1,8 @@
 package com.vhp.moviesstage1;
 
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -20,6 +22,7 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 import com.vhp.moviesstage1.adapter.MovieReviewsAdapter;
 import com.vhp.moviesstage1.adapter.MovieTrailersAdapter;
+import com.vhp.moviesstage1.data.MoviesContract;
 import com.vhp.moviesstage1.model.MovieReviews;
 import com.vhp.moviesstage1.model.MovieTrailers;
 import com.vhp.moviesstage1.model.MoviesInfo;
@@ -43,6 +46,7 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
     private MoviesInfo movieBasicDetails;
     private RecyclerView mReviewsRecyclerView , mTrailersRecyclerView;
     private String youtubeId;
+    private Button mAddFavouritesButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +56,7 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
         // getting the movie data from budle which is passed from MainActivity
         Bundle data = getIntent().getExtras();
         movieBasicDetails = data.getParcelable("MoviesInfo");
-        String movieId = movieBasicDetails.getMovieId();
+        final String movieId = movieBasicDetails.getMovieId();
 
 //        // set activity title as selected movie name
 //        getSupportActionBar().setTitle(movieBasicDetails.getMovieTitle());
@@ -84,9 +88,33 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
             }
         });
 
+        // get the movie favourite status
+        final int isMovieFavourites = isFavourites(movieId);
         // sets the movie basic details
-        bindDataToUI();
-
+        bindDataToUI(isMovieFavourites);
+        // OnClickListener for favourites button
+        mAddFavouritesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                int isFavouritesByUser = 0;
+                if(isMovieFavourites==0){
+                    isFavouritesByUser = 1;
+                    mAddFavouritesButton.setBackgroundResource(R.mipmap.ic_favorite);
+                }else if(isMovieFavourites==1){
+                    isFavouritesByUser = 0;
+                    mAddFavouritesButton.setBackgroundResource(R.mipmap.ic_favorite_border);
+                }
+                String[] movieIds = {movieId};
+                ContentValues mContentValues = new ContentValues();
+                mContentValues.put(MoviesContract.MoviesEntry.COLUMN_FAVOURITES , isFavouritesByUser);
+                int rowsUpdated = getContentResolver().update(
+                        MoviesContract.MoviesEntry.CONTENT_URI ,
+                        mContentValues ,
+                        MoviesContract.MoviesEntry.COLUMN_MOVIES_ID ,
+                        movieIds);
+                Log.d(TAG, "onClick: " + rowsUpdated);
+            }
+        });
         // fetches the movie reviews and trailers
         fetchMovieReviews(movieId);
         fetchMovieTrailers(movieId);
@@ -101,13 +129,14 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
     /**
      * This method binds the data to the UI
      */
-    private void  bindDataToUI(){
+    private void  bindDataToUI(int movieFavourites){
         // UI Typecasting
         ImageView mMoviePosterImageView = (ImageView) findViewById(R.id.imageView_movie_poster);
         TextView mTitleTextView = (TextView) findViewById(R.id.textView_movie_name);
         RatingBar mMovieRatingBar = (RatingBar) findViewById(R.id.ratingBar);
         TextView mReleaseDateTextView = (TextView) findViewById(R.id.textView_release_date);
         TextView mPlotSynopsis = (TextView) findViewById(R.id.textView_plot);
+        mAddFavouritesButton = findViewById(R.id.button_add_favourites);
 
         // set the data to UI components
         Picasso.with(DetailsActivity.this).load(movieBasicDetails.getMoviePoster()).into(mMoviePosterImageView);
@@ -118,6 +147,11 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
         mReleaseDateTextView.setText(releaseDate);
         String moviePlot = movieBasicDetails.getMoviePlot();
         mPlotSynopsis.setText(moviePlot);
+        if(movieFavourites==0){
+            mAddFavouritesButton.setBackgroundResource(R.mipmap.ic_favorite_border);
+        }else if(movieFavourites==1){
+            mAddFavouritesButton.setBackgroundResource(R.mipmap.ic_favorite);
+        }
     }
 
     /**
@@ -210,8 +244,6 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
 
                     mTrailersRecyclerView.setItemAnimator(new DefaultItemAnimator());
                 }
-
-
             }
 
             @Override
@@ -219,5 +251,21 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
                 Log.d(TAG, "onFailure: "+ t);
             }
         });
+    }
+
+    private int isFavourites(String movieIdParams){
+        int status = 0;
+        String[] projection = {MoviesContract.MoviesEntry.COLUMN_FAVOURITES};
+        String[] movieId = {movieIdParams};
+        Cursor mCursor = getContentResolver().query( MoviesContract.MoviesEntry.CONTENT_URI ,
+                projection ,
+                MoviesContract.MoviesEntry.COLUMN_MOVIES_ID ,
+                movieId ,
+                null);
+        if(mCursor.moveToFirst()){
+            status = mCursor.getInt(mCursor.getColumnIndex(MoviesContract.MoviesEntry.COLUMN_FAVOURITES));
+            Log.d(TAG, "isFavourites: " + status);
+        }
+        return status;
     }
 }

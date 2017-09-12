@@ -152,7 +152,7 @@ public class MoviesProvider extends ContentProvider {
             case MOVIES:
                 // Insert new values into the database
                 // Inserting values into movies table
-                rowsDeleted = db.delete(TABLE_NAME, MoviesContract.MoviesEntry.COLUMN_MOVIE_CATEGORY+"=?", strings);
+                rowsDeleted = db.delete(TABLE_NAME, s+"=?", strings);
                 break;
 //            case MOVIE_WITH_ID:
 //                // Get the task ID from the URI path
@@ -174,6 +174,22 @@ public class MoviesProvider extends ContentProvider {
 
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues contentValues, @Nullable String s, @Nullable String[] strings) {
-        return 0;
+        int rowsUpdated;
+        // Get access to the task database (to write new data to)
+        final SQLiteDatabase db = moviesDBHelper.getWritableDatabase();
+
+        // Write URI matching code to identify the match for the tasks directory
+        int match = sUriMatcher.match(uri);
+        switch (match){
+            case MOVIES:
+                rowsUpdated = db.update(TABLE_NAME , contentValues ,s+"=?" , strings);
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+        // Notify the resolver if the uri has been changed, and return the newly inserted URI
+        getContext().getContentResolver().notifyChange(uri, null);
+
+        return rowsUpdated;
     }
 }
