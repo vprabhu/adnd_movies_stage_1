@@ -65,7 +65,6 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
 
         mReviewsRecyclerView = (RecyclerView) findViewById(R.id.recyclerView_movie_reviews);
         mTrailersRecyclerView = (RecyclerView) findViewById(R.id.recyclerView_movie_trailers);
-        View mRelatedInfoView = (View) findViewById(R.id.view_related_info);
 
 //        makeMovieReviewsApiRequest(movieId);
 
@@ -266,6 +265,7 @@ public class DetailsActivity extends AppCompatActivity implements MovieTrailersA
             status = mCursor.getInt(mCursor.getColumnIndex(MoviesContract.MoviesEntry.COLUMN_FAVOURITES));
             Log.d(TAG, "isFavourites: " + status);
         }
+        mCursor.close();
         return status;
     }
 }

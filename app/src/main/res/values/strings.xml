@@ -1,9 +1,6 @@
 <resources>
     <string name="app_name">Movies</string>
 
-    <!-- string to show sortby header-->
-    <string name="title_sort_by">Sort By</string>
-
     <!-- string to show TopRated-->
     <string name="title_top_rated">Top Rated</string>
 
@@ -12,15 +9,6 @@
 
     <!-- string to show mostPopular-->
     <string name="title_favourites">Favourites</string>
-
-    <!-- string to show user ratings-->
-    <string name="info_ratings">Ratings(/10) : </string>
-
-    <!-- string to show release date -->
-    <string name="info_release_date">Rel.Date :  </string>
-
-    <!-- string for plot synopsis-->
-    <string name="info_plot_synopsis">Plot Synopsis :</string>
 
     <!-- string for no Trailers -->
     <string name="info_no_trailers">No Trailers , Please come back later</string>
@@ -33,7 +21,6 @@
 
     <!-- string for plot synopsis-->
     <string name="info_no_offline_data">No OffLine Data</string>
-    <string name="title_activity_scrolling">ScrollingActivity</string>
     <string name="title_release_date">11/09/2017</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
@@ -48,7 +35,4 @@
         "The fundamentals of light, surface, and movement are key to conveying how objects move, "
         "interact, and exist in space and in relation to each other. Realistic lighting shows "
     </string>
-    <string name="action_settings">Settings</string>
-    <string name="title_activity_details_scrolling">DetailsScrollingActivity</string>
-
 </resources>

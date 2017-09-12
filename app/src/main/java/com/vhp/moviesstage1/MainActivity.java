@@ -136,35 +136,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int itemId = item.getItemId();
-        if(itemId == R.id.action_movies_sort){
-            // creating an alertBuilder to show the dialog and process the user selected item
-            AlertDialog.Builder builder =
-                    new AlertDialog.Builder(this);
-            builder.setTitle(getResources().getString(R.string.title_sort_by));
-            builder.setNegativeButton("Cancel", null);
-
-            final ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1);
-            arrayAdapter.add(getResources().getString(R.string.title_most_popular));
-            arrayAdapter.add(getResources().getString(R.string.title_top_rated));
-
-            builder.setAdapter(arrayAdapter, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    if(i==0){
-                        loadMoviesCategory(Constants.MOVIES_POPULAR);
-                    }else if(i==1){
-                        loadMoviesCategory(Constants.MOVIES_TOP_RATED);
-                    }
-                }
-            });
-            builder.show();
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
     public void onClick(MoviesInfo moviesInfoData) {
         // pass the selected movie data in bundle and start the next activity
         Intent detailsActivityIntent = new Intent(MainActivity.this , DetailsActivity.class);
@@ -384,6 +355,7 @@ public class MainActivity extends AppCompatActivity
         if(mCursor.moveToFirst()){
             status = mCursor.getInt(mCursor.getColumnIndex(MoviesContract.MoviesEntry.COLUMN_FAVOURITES));
         }
+        mCursor.close();
         return status;
     }
 }

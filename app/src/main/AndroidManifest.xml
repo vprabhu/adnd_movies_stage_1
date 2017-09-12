@@ -35,12 +35,6 @@
             android:authorities="com.vhp.moviesstage1"
             android:exported="false" />
 
-        <activity
-            android:name=".DetailsScrollingActivity"
-            android:label="@string/title_activity_details_scrolling"
-            android:theme="@style/AppTheme.NoActionBar">
-
-        </activity>
     </application>
 
 </manifest>

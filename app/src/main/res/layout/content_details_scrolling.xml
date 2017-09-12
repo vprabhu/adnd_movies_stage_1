@@ -7,7 +7,7 @@
     android:layout_gravity="fill_vertical"
     android:background="@color/colorBackground"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.vhp.moviesstage1.DetailsScrollingActivity"
+    tools:context="com.vhp.moviesstage1.DetailsActivity"
     tools:showIn="@layout/activity_details_scrolling">
 
     <android.support.constraint.ConstraintLayout
