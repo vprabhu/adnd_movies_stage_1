@@ -11,6 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/dimen_grid_item_image_height"
         android:layout_gravity="center"
+        android:elevation="10dp"
         android:scaleType="centerCrop"
         tools:src="@mipmap/avatar"
         android:contentDescription="@string/info_movie_item_image" />

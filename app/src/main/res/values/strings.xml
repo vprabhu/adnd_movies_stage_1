@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MoviesStage1</string>
+    <string name="app_name">Movies</string>
 
     <!-- string to show sortby header-->
     <string name="title_sort_by">Sort By</string>
@@ -22,8 +22,14 @@
     <!-- string for plot synopsis-->
     <string name="info_plot_synopsis">Plot Synopsis :</string>
 
-    <!-- string for plot synopsis-->
+    <!-- string for no Trailers -->
     <string name="info_no_trailers">No Trailers , Please come back later</string>
+
+    <!-- string for movie poster-->
+    <string name="info_movie_item_image">Respective Movie Poster</string>
+
+    <!-- string for movie trailer play-->
+    <string name="info_movie_trailer_play">Play Movie Trailer</string>
 
     <!-- string for plot synopsis-->
     <string name="info_no_offline_data">No OffLine Data</string>

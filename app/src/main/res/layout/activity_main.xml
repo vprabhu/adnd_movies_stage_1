@@ -3,17 +3,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingTop="@dimen/dimen_root_padding"
     android:gravity="center"
     android:orientation="vertical"
+    android:paddingTop="@dimen/dimen_root_padding"
     tools:context="com.vhp.moviesstage1.MainActivity">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Movies"
-        android:textColor="@color/colorTextWhite"
+        android:text="@string/app_name"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"
+        android:textColor="@color/colorTextWhite"
         android:textStyle="italic"/>
 
     <LinearLayout
@@ -24,39 +24,42 @@
 
         <Button
             android:id="@+id/button_most_popular"
-            android:layout_weight="1"
+            style="?android:attr/buttonBarStyle"
             android:layout_width="0dp"
             android:layout_height="32dp"
+            android:layout_weight="1"
+            android:background="@drawable/drawable_movies_select"
             android:text="@string/title_most_popular"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Button"
             android:textColor="@color/colorTextWhite"
-            android:textStyle="italic"
-            android:background="@drawable/drawable_movies_select"/>
+            android:textStyle="italic"/>
+
         <Button
             android:id="@+id/button_top_rated"
-            android:layout_weight="1"
+            style="?android:attr/buttonBarStyle"
             android:layout_width="0dp"
             android:layout_height="32dp"
             android:layout_marginLeft="8dp"
             android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/drawable_movies_normal"
             android:text="@string/title_top_rated"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Button"
             android:textColor="@color/colorTextReviews"
-            android:textStyle="italic"
-            android:background="@drawable/drawable_movies_normal"/>
+            android:textStyle="italic"/>
     </LinearLayout>
 
     <Button
         android:id="@+id/button_show_favourites"
         android:layout_width="150dp"
         android:layout_height="32dp"
+        android:background="@drawable/drawable_movies_normal"
+        android:gravity="center"
+        android:padding="8dp"
         android:text="@string/title_favourites"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Button"
         android:textColor="@color/colorTextReviews"
-        android:textStyle="italic"
-        android:gravity="center"
-        android:padding="8dp"
-        android:background="@drawable/drawable_movies_normal"/>
+        android:textStyle="italic"/>
 
     <ProgressBar
         android:id="@+id/progressBar"

@@ -1,36 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/colorTextWhite">
+    android:background="@color/colorTextWhite"
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/textView_movie_review_author"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:text="Author"
         android:layout_marginLeft="16dp"
         android:layout_marginStart="16dp"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"
-        android:textColor="@color/colorTextReviews"/>
+        android:textColor="@color/colorTextReviews"
+        tools:text="Author" />
 
     <TextView
         android:id="@+id/textView_movie_review_content"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:text="Content"
         android:layout_marginLeft="32dp"
         android:layout_marginStart="32dp"
         android:padding="8dp"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Body1"
         android:textColor="@color/colorTextReviews"
-        android:textAppearance="@style/Base.TextAppearance.AppCompat.Body1"/>
-
-    <!--<View-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="1dp"-->
-        <!--android:layout_marginTop="8dp"-->
-        <!--android:background="@color/colorTextReviews"/>-->
+        tools:text="Content" />
 
 </LinearLayout>
