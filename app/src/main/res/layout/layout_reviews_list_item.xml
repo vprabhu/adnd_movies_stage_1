@@ -10,8 +10,8 @@
         android:id="@+id/textView_movie_review_author"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginStart="16dp"
+        android:layout_marginLeft="@dimen/dimen_right_margin_comments"
+        android:layout_marginStart="@dimen/dimen_right_margin_comments"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"
         android:textColor="@color/colorTextReviews"
         tools:text="Author" />
@@ -20,9 +20,9 @@
         android:id="@+id/textView_movie_review_content"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="32dp"
-        android:layout_marginStart="32dp"
-        android:padding="8dp"
+        android:layout_marginLeft="@dimen/dimen_fav_height"
+        android:layout_marginStart="@dimen/dimen_fav_height"
+        android:padding="@dimen/dimen_margin_8_dp"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Body1"
         android:textColor="@color/colorTextReviews"
         tools:text="Content" />

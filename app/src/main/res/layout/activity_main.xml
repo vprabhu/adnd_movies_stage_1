@@ -20,13 +20,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="10dp">
+        android:padding="@dimen/dimen_padding_movie_type">
 
         <Button
             android:id="@+id/button_most_popular"
             style="?android:attr/buttonBarStyle"
             android:layout_width="0dp"
-            android:layout_height="32dp"
+            android:layout_height="@dimen/dimen_margin_top_details"
             android:layout_weight="1"
             android:background="@drawable/drawable_movies_select"
             android:text="@string/title_most_popular"
@@ -38,9 +38,9 @@
             android:id="@+id/button_top_rated"
             style="?android:attr/buttonBarStyle"
             android:layout_width="0dp"
-            android:layout_height="32dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginStart="8dp"
+            android:layout_height="@dimen/dimen_margin_top_details"
+            android:layout_marginLeft="@dimen/dimen_margin_8_dp"
+            android:layout_marginStart="@dimen/dimen_margin_8_dp"
             android:layout_weight="1"
             android:background="@drawable/drawable_movies_normal"
             android:text="@string/title_top_rated"
@@ -51,8 +51,8 @@
 
     <Button
         android:id="@+id/button_show_favourites"
-        android:layout_width="150dp"
-        android:layout_height="32dp"
+        android:layout_width="@dimen/dimen_fav_width"
+        android:layout_height="@dimen/dimen_fav_height"
         android:background="@drawable/drawable_movies_normal"
         android:gravity="center"
         android:padding="8dp"
@@ -71,6 +71,6 @@
         android:id="@+id/recyclerView_movies"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="8dp"/>
+        android:layout_marginTop="@dimen/dimen_margin_8_dp"/>
 
 </LinearLayout>

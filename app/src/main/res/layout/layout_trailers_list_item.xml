@@ -6,7 +6,7 @@
     android:background="@color/colorTextWhite"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="16dp">
+    android:padding="@dimen/dimen_right_margin_comments">
 
     <ImageView
         android:layout_width="wrap_content"

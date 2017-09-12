@@ -10,7 +10,7 @@
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
-        android:layout_height="350dp"
+        android:layout_height="@dimen/dimen_details_image_height"
         android:fitsSystemWindows="false"
         android:theme="@style/AppTheme.AppBarOverlay">
 
@@ -25,7 +25,7 @@
             <ImageView
                 android:id="@+id/imageView_movie_poster"
                 android:layout_width="match_parent"
-                android:layout_height="350dp"
+                android:layout_height="match_parent"
                 android:scaleType="centerCrop"
                 android:contentDescription="@string/info_movie_item_image" />
         </android.support.design.widget.CollapsingToolbarLayout>

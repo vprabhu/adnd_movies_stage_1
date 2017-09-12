@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_margin="@dimen/dimen_margin_8_dp"
     android:orientation="vertical">
 
     <ImageView
@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/dimen_grid_item_image_height"
         android:layout_gravity="center"
-        android:elevation="10dp"
+        android:elevation="@dimen/dimen_list_image_elevation"
         android:scaleType="centerCrop"
         tools:src="@mipmap/avatar"
         android:contentDescription="@string/info_movie_item_image" />
@@ -24,7 +24,7 @@
         android:gravity="center"
         android:maxLength="30"
         android:maxLines="2"
-        android:padding="5dp"
+        android:padding="@dimen/dimen_root_padding"
         android:textAllCaps="true"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Caption"
         android:textColor="@color/colorTextWhite"

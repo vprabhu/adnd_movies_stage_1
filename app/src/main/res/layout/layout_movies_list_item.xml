@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_margin="@dimen/dimen_margin_8_dp"
     android:orientation="vertical">
 
     <ImageView
@@ -23,7 +23,7 @@
         android:gravity="center"
         android:maxLength="30"
         android:maxLines="2"
-        android:padding="5dp"
+        android:padding="@dimen/dimen_root_padding"
         android:textAllCaps="true"
         android:textAppearance="@style/Base.TextAppearance.AppCompat.Caption"
         android:textColor="@color/colorTextWhite"
