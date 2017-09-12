@@ -15,9 +15,6 @@ import com.vhp.moviesstage1.R;
 import com.vhp.moviesstage1.data.MoviesContract;
 import com.vhp.moviesstage1.model.MoviesInfo;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Created by root on 7/23/17.
  */

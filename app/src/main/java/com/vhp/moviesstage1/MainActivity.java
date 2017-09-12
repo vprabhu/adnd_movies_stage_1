@@ -1,24 +1,19 @@
 package com.vhp.moviesstage1;
 
 import android.content.ContentValues;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.os.PersistableBundle;
+import android.os.Parcelable;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v4.content.Loader;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.vhp.moviesstage1.adapter.MoviesAdapter;
@@ -50,6 +45,9 @@ public class MainActivity extends AppCompatActivity
     private Button mTopRatedButton;
     private Button mFavouritesButton;
     private String movieType;
+    private RecyclerView mMoviesRecyclerView;
+    private Parcelable layoutManagerSavedState;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +55,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         // UI Typecasting
-        RecyclerView mMoviesRecyclerView = findViewById(R.id.recyclerView_movies);
+        mMoviesRecyclerView = findViewById(R.id.recyclerView_movies);
         // api request to fetch the movies popular API as default
         // makeApiRequest(Constants.MOVIES_POPULAR);
 
@@ -118,12 +116,15 @@ public class MainActivity extends AppCompatActivity
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString("restoreMoviesList" , movieType);
+        outState.putParcelable("recyclerViewScrollPosition", mMoviesRecyclerView.getLayoutManager().onSaveInstanceState());
+
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         String persistMovieType = savedInstanceState.getString("restoreMoviesList");
+        layoutManagerSavedState = ((Bundle) savedInstanceState).getParcelable("recyclerViewScrollPosition");
         if(persistMovieType.equalsIgnoreCase(Constants.MOVIES_POPULAR)){
             loadUserSelectedMovies(
                     Constants.MOVIES_POPULAR ,
@@ -220,6 +221,7 @@ public class MainActivity extends AppCompatActivity
                             Toast.LENGTH_LONG).show();
                 }else {
                     mMoviesCursor = data;
+                    restoreLayoutManagerPosition();
                 }
             }
         };
@@ -398,5 +400,14 @@ public class MainActivity extends AppCompatActivity
         //change to normal mode
         deselectButton2.setBackgroundResource(R.drawable.drawable_movies_normal);
         deselectButton2.setTextColor(getResources().getColor(R.color.colorTextReviews));
+    }
+
+    /**
+     * restore the recyclerView scroll position
+     */
+    private void restoreLayoutManagerPosition() {
+        if (layoutManagerSavedState != null) {
+            mMoviesRecyclerView.getLayoutManager().onRestoreInstanceState(layoutManagerSavedState);
+        }
     }
 }
